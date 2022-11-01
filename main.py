@@ -75,5 +75,15 @@ graph.add_edge(v,sa,'v.value!=sa.value')
 
 # Initializing CSP with the constraints
 csp = CSP(graph)
-csp.graph.view_graph()
-# Set the constraints (in this case)
+# Add the variables
+csp.variables.append(wa)
+csp.variables.append(nt)
+csp.variables.append(sa)
+csp.variables.append(q)
+csp.variables.append(v)
+csp.variables.append(t)
+# Set the common domain of values
+csp.domain=CSP_domain
+# Set the constraints (in this case, just copy them from the edges to the csp ds)
+for edge in graph.edges:
+    csp.constaints.append(edge[2])
