@@ -14,6 +14,7 @@ class Graph:
     def add_edge(self,node1,node2,constraint):
         # AC-3 CSP uses two way directed edges
         self.edges.append([node1,node2,constraint])
+        self.nodes+=1
         #self.edges.append([node2,node1])
         return
     
