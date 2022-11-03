@@ -85,5 +85,18 @@ csp.variables.append(t)
 # Set the common domain of values
 csp.domain=CSP_domain
 # Set the constraints (in this case, just copy them from the edges to the csp ds)
-for edge in graph.edges:
-    csp.constaints.append(edge[2])
+for edge in graph.edges: csp.constaints.append(edge[2])
+
+def ac3(csp:CSP):
+    queue:list = [edge for edge in csp.graph.edges] # add all the arcs to the queue
+    while len(queue)!=0:
+        arc = queue.pop()
+        print(arc)
+    return
+
+def revise(csp,edge): # edge[0]=Xi and edge[1]=Xj
+    revised = False
+    
+    return revised
+
+ac3(csp)
