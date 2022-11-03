@@ -1,7 +1,7 @@
 class Variable:
     def __init__(self,name,domain):
         self.name = name #  String to represent the name of the node (in the map example)
-        self.value = -1
+        self.value = -1 # Default ==-1 which means its not holding any colors
         self.domain = domain # Domain of the values the list can hold (initiliazed with the CSP Declared variable)
         return
     
@@ -15,7 +15,6 @@ class Graph:
         # AC-3 CSP uses two way directed edges
         self.edges.append([node1,node2,constraint])
         self.nodes+=1
-        #self.edges.append([node2,node1])
         return
     
     def view_graph(self): # Print as a list of edges
@@ -83,9 +82,11 @@ csp.variables.append(sa)
 csp.variables.append(q)
 csp.variables.append(v)
 csp.variables.append(t)
+
 # Set the common domain of values
 csp.domain=CSP_domain
-# Set the constraints (in this case, just copy them from the edges to the csp ds)
+
+# Set the constraints (in this case, just copy them from the edges to the csp data structure)
 for edge in graph.edges: csp.constaints.append(edge[2])
 
 def ac3(csp:CSP):
@@ -97,7 +98,20 @@ def ac3(csp:CSP):
 
 def revise(csp,edge): # edge[0]=Xi and edge[1]=Xj
     revised = False
-    
+    print(edge[0].name, edge[1].name)
+    for x in edge[0].domain:
+        to_remove = True
+        edge[0].value = x # set  x to be the value of the node (edge[0]) 
+        for y in edge[1].domain:
+            edge[1].value = y # set y to be the value of the node (edge[1])
+            if eval(edge[2]):
+                to_remove = False
+                break # loop through, if at any point the constraint between x and y is true, go to the next value of x
+        if to_remove==True:
+            edge[0].domain.remove(x)
+            revised = True
+    edge[0].value,edge[1].value = -1,-1 # reset both the edges to hold the default values
     return revised
 
-ac3(csp)
+print(graph.edges[0])
+revised = revise(csp,graph.edges[0])
