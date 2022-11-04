@@ -89,16 +89,9 @@ csp.domain=CSP_domain
 # Set the constraints (in this case, just copy them from the edges to the csp data structure)
 for edge in graph.edges: csp.constaints.append(edge[2])
 
-def ac3(csp:CSP):
-    queue:list = [edge for edge in csp.graph.edges] # add all the arcs to the queue
-    while len(queue)!=0:
-        arc = queue.pop()
-        print(arc)
-    return
 
-def revise(csp,edge): # edge[0]=Xi and edge[1]=Xj
+def revise(edge): # edge[0]=Xi and edge[1]=Xj
     revised = False
-    print(edge[0].name, edge[1].name)
     for x in edge[0].domain:
         to_remove = True
         edge[0].value = x # set  x to be the value of the node (edge[0]) 
@@ -113,5 +106,12 @@ def revise(csp,edge): # edge[0]=Xi and edge[1]=Xj
     edge[0].value,edge[1].value = -1,-1 # reset both the edges to hold the default values
     return revised
 
-print(graph.edges[0])
-revised = revise(csp,graph.edges[0])
+def ac3(csp:CSP):
+    queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
+    while len(queue)!=0:
+        arc = queue.pop()
+        if revise(arc):
+            print(arc[0].name,':',arc[2])
+    return
+
+ac3(csp)
