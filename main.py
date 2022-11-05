@@ -1,3 +1,5 @@
+import math
+
 class Variable:
     def __init__(self,name,domain):
         self.name = name #  String to represent the name of the node (in the map example)
@@ -32,57 +34,25 @@ class CSP:
         return
 
 
-# Test the Graph DS with the Coloring graph
-CSP_domain = [0,1,2] # 0: Red, 1: Green, 2: Blue
+# Test the Graph DS and AC-3 with slide 17 example
+CSP_domain = [0,1,2,3,4,5,6,7,8,9]
 # Create the variables for the different states in AU
-wa = Variable('WA',CSP_domain)
-nt = Variable('NT',CSP_domain)
-q = Variable('Q',CSP_domain)
-sa = Variable('SA',CSP_domain)
-nsw = Variable('NSW',CSP_domain)
-v = Variable('V',CSP_domain)
-t = Variable('T',CSP_domain)
+x = Variable('X',CSP_domain)
+y = Variable('Y',CSP_domain)
 
 # Create the graph by inserting edges
 graph = Graph() # Initialize the graph object
 
 # Add the edges
-graph.add_edge(wa,nt,'wa.value!=nt.value')
-graph.add_edge(wa,sa,'wa.value!=sa.value')
-
-graph.add_edge(nt,wa,'nt.value!=wa.value')
-graph.add_edge(nt,sa,'nt.value!=sa.value')
-graph.add_edge(nt,q,'nt.value!=q.value')
-
-
-graph.add_edge(sa,wa,'sa.value!=wa.value')
-graph.add_edge(sa,nt,'sa.value!=nt.value')
-graph.add_edge(sa,q,'sa.value!=q.value')
-graph.add_edge(sa,nsw,'sa.value!=nsw.value')
-graph.add_edge(sa,v,'sa.value!=v.value')
-
-graph.add_edge(q,nt,'q.value!=nt.value')
-graph.add_edge(q,nsw,'q.value!=nsw.value')
-graph.add_edge(q,sa,'q.value!=sa.value')
-
-graph.add_edge(nsw,q,'nsw.value!=q.value')
-graph.add_edge(nsw,sa,'nsw.value!=sa.value')
-graph.add_edge(nsw,v,'nsw.value!=v.value')
-
-graph.add_edge(v,nsw,'v.value!=nsw.value')
-graph.add_edge(v,sa,'v.value!=sa.value')
-
+graph.add_edge(x,y,'x==math.sqrt(y)')
+graph.add_edge(y,x,'y==(x*x)')
 
 # Initializing CSP with the constraints
 csp = CSP(graph)
 
 # Add the variables
-csp.variables.append(wa)
-csp.variables.append(nt)
-csp.variables.append(sa)
-csp.variables.append(q)
-csp.variables.append(v)
-csp.variables.append(t)
+csp.variables.append(x)
+csp.variables.append(y)
 
 # Set the common domain of values
 csp.domain=CSP_domain
@@ -95,23 +65,33 @@ def revise(edge): # edge[0]=Xi and edge[1]=Xj
     for x in edge[0].domain: # Iterate through the domain of x
         to_remove = True # Set to false when there is any combination with y with makes it consistent
         edge[0].value = x # set  x to be the value of the node (edge[0]) 
+    
         for y in edge[1].domain: # loop through, if at any point the constraint between x and y is true, go to the next value of x
             edge[1].value = y # set y to be the value of the node (edge[1])
             if eval(edge[2]):
                 to_remove = False
                 break 
+    
         if to_remove==True: # If this value of x, can never be consistent with the other variable, remove it
             edge[0].domain.remove(x)
             revised = True
+    
     edge[0].value,edge[1].value = -1,-1 # reset both the edges to hold the default values (as this is not an assignment function)
+    
     return revised
 
 def ac3(csp:CSP):
     queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
+    print(queue)
     while len(queue)!=0:
-        arc = queue.pop()
+        arc = queue.pop() #commutative, therefore, order is irrelevant
+        print(f'\t{arc[0].name}:{arc[0].domain}')
         if revise(arc): # if there were any x in the from nodes domain that would never work with the to domain and was therefore trimmed
             if len(arc[0].domain)==0: return False # if no value in x, can be used as a consistent value with arc[0] with relation to arc[1], return false to indiciate that the problem is not solvable
             for edge in csp.graph.edges:  # Find all neighbots to arc[0] <- find edges that have edge[1]==arc[0] and add them back to the queue
                 if edge[1]==arc[0]:queue.append(edge) 
     return True
+
+if ac3(csp):
+    print(csp.variables[0].domain)
+    print(csp.variables[1].domain)
