@@ -82,22 +82,23 @@ def ac3(csp:CSP):
     return True
 
 
-# Test the Graph DS and AC-3 with slide 17 example
-CSP_domain = [0,1,2,3,4,5,6,7,8,9]
-# Create the variables with a variable name and a common domain
-x = Variable('X',CSP_domain)
-y = Variable('Y',CSP_domain)
-# Create the graph by inserting edges
-graph = Graph() # Initialize the graph object
-# Add the edges to the graph (with constraints)
-graph.add_edge(x,y,'x==math.sqrt(y)')
-graph.add_edge(y,x,'(y*y)==x')
-# Initializing CSP with the graph
-csp = CSP(graph)
-# Add the variables to the CSP
-csp.variables.append(x)
-csp.variables.append(y)
-csp.domain=CSP_domain # Set the common domain of values
-# Set the constraints (in this case, just copy them from the edges to the csp data structure)
-for edge in graph.edges: csp.constaints.append(edge[2])
-if ac3(csp): print(csp)
+if __name__=='__main__':
+    # Test the Graph DS and AC-3 with slide 17 example
+    CSP_domain = [0,1,2,3,4,5,6,7,8,9]
+    # Create the variables with a variable name and a common domain
+    x = Variable('X',CSP_domain)
+    y = Variable('Y',CSP_domain)
+    # Create the graph by inserting edges
+    graph = Graph() # Initialize the graph object
+    # Add the edges to the graph (with constraints)
+    graph.add_edge(x,y,'x==math.sqrt(y)')
+    graph.add_edge(y,x,'(y*y)==x')
+    # Initializing CSP with the graph
+    csp = CSP(graph)
+    # Add the variables to the CSP
+    csp.variables.append(x)
+    csp.variables.append(y)
+    csp.domain=CSP_domain # Set the common domain of values
+    # Set the constraints (in this case, just copy them from the edges to the csp data structure)
+    for edge in graph.edges: csp.constaints.append(edge[2])
+    if ac3(csp): print(csp)
