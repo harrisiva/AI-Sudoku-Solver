@@ -1,4 +1,5 @@
 import math
+import copy
 
 class Variable:
     def __init__(self,name,domain):
@@ -45,7 +46,7 @@ graph = Graph() # Initialize the graph object
 
 # Add the edges
 graph.add_edge(x,y,'x==math.sqrt(y)')
-graph.add_edge(y,x,'y==(x*x)')
+graph.add_edge(y,x,'(y*y)==x')
 
 # Initializing CSP with the constraints
 csp = CSP(graph)
@@ -60,24 +61,35 @@ csp.domain=CSP_domain
 # Set the constraints (in this case, just copy them from the edges to the csp data structure)
 for edge in graph.edges: csp.constaints.append(edge[2])
 
-def revise(edge): # edge[0]=Xi and edge[1]=Xj
-    revised = False # Set revised initially to be false
-    for x in edge[0].domain: # Iterate through the domain of x
-        to_remove = True # Set to false when there is any combination with y with makes it consistent
-        edge[0].value = x # set  x to be the value of the node (edge[0]) 
+def revise(edge): 
+    xi:Variable = edge[0]
+    xj:Variable = edge[1]
+    constraint:str = edge[2]
+    revised:bool = False # Set revised initially to be false
     
-        for y in edge[1].domain: # loop through, if at any point the constraint between x and y is true, go to the next value of x
-            edge[1].value = y # set y to be the value of the node (edge[1])
-            if eval(edge[2]):
-                to_remove = False
-                break 
-    
-        if to_remove==True: # If this value of x, can never be consistent with the other variable, remove it
-            edge[0].domain.remove(x)
-            revised = True
-    
-    edge[0].value,edge[1].value = -1,-1 # reset both the edges to hold the default values (as this is not an assignment function)
-    
+    # get a copy of xi's domain
+    xi_domain_cpy = copy.deepcopy(xi.domain)
+
+    for x in xi.domain: # itterate through the original xi domain
+        consistent = False
+        
+        for y in xj.domain: # iterate through the domain of xj
+            if eval(constraint)==True: 
+                consistent = True # To check consistency, evaluate the constraint for the given edge, if true, that means the constraint is met                
+        
+        # if x can not be consistent with any values in the domain of y, remove x from xi's copied domain,
+        if consistent!=True:
+            xi_domain_cpy.remove(x)            
+
+    # If the length of the original domain is 
+    # not equal to the length of the copied domain, 
+    # set revised to be true as the length of the 
+    # original domain will change based on th removal of values.
+    # and set xi.domain to be the same as the copy
+    if len(xi_domain_cpy)!=len(xi.domain): 
+        revised=True 
+        xi.domain = copy.deepcopy(xi_domain_cpy)
+
     return revised
 
 def ac3(csp:CSP):
@@ -92,6 +104,6 @@ def ac3(csp:CSP):
                 if edge[1]==arc[0]:queue.append(edge) 
     return True
 
-if ac3(csp):
-    print(csp.variables[0].domain)
-    print(csp.variables[1].domain)
+print(graph.edges[0][0].name)
+print(revise(graph.edges[0]))
+print(graph.edges[0][0].domain)
