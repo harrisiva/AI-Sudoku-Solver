@@ -23,7 +23,6 @@ class Graph:
             print(f'{edge[0].name}|{edge[1].name}|{eval(edge[2])}')
         return
 
-
 class CSP:
     def __init__(self, graph: Graph):
         self.variables=[] # Variable objects
@@ -43,6 +42,7 @@ sa = Variable('SA',CSP_domain)
 nsw = Variable('NSW',CSP_domain)
 v = Variable('V',CSP_domain)
 t = Variable('T',CSP_domain)
+
 # Create the graph by inserting edges
 graph = Graph() # Initialize the graph object
 
@@ -75,6 +75,7 @@ graph.add_edge(v,sa,'v.value!=sa.value')
 
 # Initializing CSP with the constraints
 csp = CSP(graph)
+
 # Add the variables
 csp.variables.append(wa)
 csp.variables.append(nt)
@@ -89,29 +90,28 @@ csp.domain=CSP_domain
 # Set the constraints (in this case, just copy them from the edges to the csp data structure)
 for edge in graph.edges: csp.constaints.append(edge[2])
 
-
 def revise(edge): # edge[0]=Xi and edge[1]=Xj
-    revised = False
-    for x in edge[0].domain:
-        to_remove = True
+    revised = False # Set revised initially to be false
+    for x in edge[0].domain: # Iterate through the domain of x
+        to_remove = True # Set to false when there is any combination with y with makes it consistent
         edge[0].value = x # set  x to be the value of the node (edge[0]) 
-        for y in edge[1].domain:
+        for y in edge[1].domain: # loop through, if at any point the constraint between x and y is true, go to the next value of x
             edge[1].value = y # set y to be the value of the node (edge[1])
             if eval(edge[2]):
                 to_remove = False
-                break # loop through, if at any point the constraint between x and y is true, go to the next value of x
-        if to_remove==True:
+                break 
+        if to_remove==True: # If this value of x, can never be consistent with the other variable, remove it
             edge[0].domain.remove(x)
             revised = True
-    edge[0].value,edge[1].value = -1,-1 # reset both the edges to hold the default values
+    edge[0].value,edge[1].value = -1,-1 # reset both the edges to hold the default values (as this is not an assignment function)
     return revised
 
 def ac3(csp:CSP):
     queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
     while len(queue)!=0:
         arc = queue.pop()
-        if revise(arc):
-            print(arc[0].name,':',arc[2])
-    return
-
-ac3(csp)
+        if revise(arc): # if there were any x in the from nodes domain that would never work with the to domain and was therefore trimmed
+            if len(arc[0].domain)==0: return False # if no value in x, can be used as a consistent value with arc[0] with relation to arc[1], return false to indiciate that the problem is not solvable
+            for edge in csp.graph.edges:  # Find all neighbots to arc[0] <- find edges that have edge[1]==arc[0] and add them back to the queue
+                if edge[1]==arc[0]:queue.append(edge) 
+    return True
