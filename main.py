@@ -94,16 +94,15 @@ def revise(edge):
 
 def ac3(csp:CSP):
     queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
-    print(queue)
-    while len(queue)!=0:
-        arc = queue.pop() #commutative, therefore, order is irrelevant
-        print(f'\t{arc[0].name}:{arc[0].domain}')
+    while len(queue)>0:
+        arc = queue.pop() # order is irrelevant since it is commutative
         if revise(arc): # if there were any x in the from nodes domain that would never work with the to domain and was therefore trimmed
             if len(arc[0].domain)==0: return False # if no value in x, can be used as a consistent value with arc[0] with relation to arc[1], return false to indiciate that the problem is not solvable
             for edge in csp.graph.edges:  # Find all neighbots to arc[0] <- find edges that have edge[1]==arc[0] and add them back to the queue
-                if edge[1]==arc[0]:queue.append(edge) 
+                if edge[1]==arc[0]: queue.append(edge)
+
     return True
 
-print(graph.edges[0][0].name)
-print(revise(graph.edges[0]))
-print(graph.edges[0][0].domain)
+print(ac3(csp))
+print(csp.variables[0].name,csp.variables[0].domain)
+print(csp.variables[1].name,csp.variables[1].domain)
