@@ -1,5 +1,3 @@
-from main import Graph, Variable
-import numpy as np
 # Attempting to convert the sudoku puzzle to a graph that can have ac-3 imposed on it
 
 # Each cell in the puzzle is a node
