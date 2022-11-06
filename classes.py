@@ -49,7 +49,7 @@ class CSP:
             returnable += f'{variable.name}: {variable.domain}\n'
         return returnable
 
-def revise(edge): 
+def revise(edge, board:list): 
     xi:Variable = edge[0]
     xj:Variable = edge[1]
     constraint:str = edge[2]
@@ -63,9 +63,9 @@ def revise(edge):
         
         for y in xj.domain: # iterate through the domain of xj
             for a_constraint in constraint:
-                if eval(a_constraint)==True: 
-                    consistent = True # To check consistency, evaluate the constraint for the given edge, if true, that means the constraint is met                
-        
+                    if eval(a_constraint)==True: # NOTE: Since it should be alldiff, we need to modify the AC-3 algorithm to consider all the constraints when evaluating the domain
+                        consistent = True # To check consistency, evaluate the constraint for the given edge, if true, that means the constraint is met                
+
         # if x can not be consistent with any values in the domain of y, remove x from xi's copied domain,
         if consistent!=True:
             xi_domain_cpy.remove(x)            
@@ -81,11 +81,11 @@ def revise(edge):
 
     return revised
 
-def ac3(csp:CSP):
+def ac3(csp:CSP, board:list):
     queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
     while len(queue)>0:
         arc = queue.pop() # order is irrelevant since it is commutative
-        if revise(arc): # if there were any x in the from nodes domain that would never work with the to domain and was therefore trimmed
+        if revise(arc,board): # if there were any x in the from nodes domain that would never work with the to domain and was therefore trimmed
             if len(arc[0].domain)==0: return False # if no value in x, can be used as a consistent value with arc[0] with relation to arc[1], return false to indiciate that the problem is not solvable
             for edge in csp.graph.edges:  # Find all neighbots to arc[0] <- find edges that have edge[1]==arc[0] and add them back to the queue
                 if edge[1]==arc[0]: queue.append(edge)

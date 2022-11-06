@@ -1,23 +1,9 @@
-from main import Graph, Variable
+from classes import Graph, Variable, CSP, ac3
+SUDOKUDOMAIN = [1,2,3,4,5,6,7,8,9] # used in sudokuGraphify and main
 
 # Code to load the box constratins from constraints.txt
 with open('constraints.txt','r') as file: lines=file.readlines()
 lines = [line.replace('\n','').replace(' ','') for line in lines]
-
-# 0's are blank cells (no-assignments)
-board = [
-    [0,0,3, 0,2,0, 6,0,0],
-    [9,0,0, 3,0,5, 0,0,1],
-    [0,0,1, 8,0,6, 4,0,0],
-
-    [0,0,8, 1,0,2, 9,0,0],
-    [7,0,0, 0,0,0, 0,0,8],
-    [0,0,6, 7,0,8, 2,0,0],
-
-    [0,0,2, 6,0,9, 5,0,0],
-    [8,0,0, 2,0,3, 0,0,9],
-    [0,0,5, 0,1,0, 3,0,0],
-]
 
 def get_adjacent(board,i,j): # Return a list of adjacent indexs as tuples, use it for the box perhaps and to create edges
     adjacent = []
@@ -44,13 +30,12 @@ def get_box_constraints(i,j):
 def get_constraints(board,i,j):
     constraints = []
     all_diff_constraints = get_alldiff_constraints(board,i,j)
-    constraints.append(all_diff_constraints)
+    for line in all_diff_constraints: constraints.append(line)
     box_constraints = get_box_constraints(i,j)
-    constraints.append(box_constraints)
+    for line in box_constraints: constraints.append(line)
     return constraints
 
 def sudokuGraphify(board:list)->Graph:
-    sudokuDomain = [1,2,3,4,5,6,7,8,9]
     graph = Graph()
     # convert the board to a graph loop through each index pair and get adjacent and add it as a edge
     for i in range(0,len(board),1):
@@ -62,15 +47,35 @@ def sudokuGraphify(board:list)->Graph:
             
             adjacent = get_adjacent(board,i,j)
             for cell in adjacent:
-                from_node = Variable(f'board[{i}][{j}]',board[i][j],sudokuDomain if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
-                to_node = Variable(cell,eval(cell),sudokuDomain)
+                from_node = Variable(f'board[{i}][{j}]',board[i][j],SUDOKUDOMAIN if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
+                to_node = Variable(cell,eval(cell),SUDOKUDOMAIN)
                 graph.add_edge(from_node,to_node,constraints)
-    
     return graph
 
 
-# Contains the correct amount of nodes
-# Contains the correct amount of direct edges
-# Contains the current alldiff binarized constraints
-# Constains box constraints
-graph: Graph = sudokuGraphify(board)
+
+if __name__=='__main__':
+    # 0's are blank cells (no-assignments)
+    board = [
+        [0,0,3, 0,2,0, 6,0,0],
+        [9,0,0, 3,0,5, 0,0,1],
+        [0,0,1, 8,0,6, 4,0,0],
+
+        [0,0,8, 1,0,2, 9,0,0],
+        [7,0,0, 0,0,0, 0,0,8],
+        [0,0,6, 7,0,8, 2,0,0],
+
+        [0,0,2, 6,0,9, 5,0,0],
+        [8,0,0, 2,0,3, 0,0,9],
+        [0,0,5, 0,1,0, 3,0,0],
+    ]
+    
+    graph: Graph = sudokuGraphify(board) # Convert the board into a graph
+    # Create a CSP with the graph
+    csp = CSP(graph)
+    # Add the domain to the CSP along with the graph's nodes are variables
+    for node in graph.nodes: csp.variables.append(node)
+    csp.domain = SUDOKUDOMAIN
+    # call ac-3 with the csp and see what happens :)
+    if ac3(csp,board): 
+        print(csp)
