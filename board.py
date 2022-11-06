@@ -1,5 +1,9 @@
 from main import Graph, Variable
 
+# Code to load the box constratins from constraints.txt
+with open('constraints.txt','r') as file: lines=file.readlines()
+lines = [line.replace('\n','').replace(' ','') for line in lines]
+
 # 0's are blank cells (no-assignments)
 board = [
     [0,0,3, 0,2,0, 6,0,0],
@@ -23,7 +27,7 @@ def get_adjacent(board,i,j): # Return a list of adjacent indexs as tuples, use i
     if j!=0: adjacent.append(f'board[{i}][{j-1}]') # Left (if not left most col)
     return adjacent
 
-def alldiff(board,i,j): # Given the puzzle and a cell's index, this function returns the all diff as a binary constraint relative to that cell
+def get_alldiff_constraints(board,i,j): # Given the puzzle and a cell's index, this function returns the all diff as a binary constraint relative to that cell
     given = (i,j)
     constraints = []
     # Get all the other indexs in the same row and column as a tuple
@@ -34,8 +38,15 @@ def alldiff(board,i,j): # Given the puzzle and a cell's index, this function ret
         if (x,j)!=given: constraints.append(f'board[{i}][{j}]!=board[{x}][{j}]') 
     return constraints
 
+def get_box_constraints(i,j):
+    return [line for line in lines if f'board[{i}][{j}]' in line] 
+
 def get_constraints(board,i,j):
-    constraints = alldiff(board,i,j)
+    constraints = []
+    all_diff_constraints = get_alldiff_constraints(board,i,j)
+    constraints.append(all_diff_constraints)
+    box_constraints = get_box_constraints(i,j)
+    constraints.append(box_constraints)
     return constraints
 
 def sudokuGraphify(board:list)->Graph:
@@ -45,16 +56,21 @@ def sudokuGraphify(board:list)->Graph:
     for i in range(0,len(board),1):
         for j in range(0,len(board),1):
             constraints = get_constraints(board,i,j) # generate all the constraints for the current (from) node (i,j)
+            
+            # If the node has a value, add it to the constraints as board[i][j]==value
+            if board[i][j]!=0: constraints.append(f'board[{i}][{j}]=={board[i][j]}')
+            
             adjacent = get_adjacent(board,i,j)
             for cell in adjacent:
-                from_node = Variable(f'board[{i}][{j}]',board[i][j],sudokuDomain)
+                from_node = Variable(f'board[{i}][{j}]',board[i][j],sudokuDomain if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
                 to_node = Variable(cell,eval(cell),sudokuDomain)
                 graph.add_edge(from_node,to_node,constraints)
+    
     return graph
 
 
 # Contains the correct amount of nodes
 # Contains the correct amount of direct edges
 # Contains the current alldiff binarized constraints
-# Mising the box constraints
+# Constains box constraints
 graph: Graph = sudokuGraphify(board)
