@@ -32,6 +32,7 @@ for i in range(0,len(puzzle),1):
 
 
 """
+# Simple Box Constraints
 matrix = [
     [0,1,2],
     [3,4,5],
