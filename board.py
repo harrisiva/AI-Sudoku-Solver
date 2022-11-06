@@ -62,7 +62,7 @@ def sudokuGraphify(board:list)->Graph:
             
             adjacent = get_adjacent(board,i,j)
             for cell in adjacent:
-                from_node = Variable(f'board[{i}][{j}]',board[i][j],sudokuDomain if board[i][j]!=0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
+                from_node = Variable(f'board[{i}][{j}]',board[i][j],sudokuDomain if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
                 to_node = Variable(cell,eval(cell),sudokuDomain)
                 graph.add_edge(from_node,to_node,constraints)
     
