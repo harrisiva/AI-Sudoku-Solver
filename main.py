@@ -93,7 +93,7 @@ def ac3(csp:CSP):
     return True
 
 
-if __name__=='__main__':
+if __name__=='__main__': #To test AC-3 with the sqrt constraint example from m5-csp slide 17
     # Test the Graph DS and AC-3 with slide 17 example
     CSP_domain = [0,1,2,3,4,5,6,7,8,9]
     # Create the variables with a variable name and a common domain
