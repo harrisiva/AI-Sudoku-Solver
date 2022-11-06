@@ -12,14 +12,22 @@ class Variable:
 
 class Graph:
     def __init__(self):
-        self.nodes: int = 0 # Number of nodes
         self.edges:list = [] # List of edges
+        self.nodes: list = []
         return
         
-    def add_edge(self,node1:Variable,node2:Variable,constraint:list):
+    def add_edge(self,from_node:Variable,to_node:Variable,constraint:list):
         # AC-3 CSP uses two way directed edges
-        self.edges.append([node1,node2,constraint])
-        self.nodes+=1
+        self.edges.append([from_node,to_node,constraint])
+
+        # update list of nodes (check if node exists, if not true, append to list of nodes)
+        node_exists = False
+        for node in self.nodes:
+            if from_node.name==node.name:
+                node_exists = True
+        if node_exists==False: 
+            self.nodes.append(from_node)
+    
         return
     
     def view_graph(self): # Print as a list of edges
