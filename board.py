@@ -57,4 +57,15 @@ def sudokuGraphify(board:list)->Graph:
 # Contains the correct amount of direct edges
 # Contains the current alldiff binarized constraints
 # Mising the box constraints
-graph: Graph = sudokuGraphify(board)
+#graph: Graph = sudokuGraphify(board)
+
+# Code to load the box constratins from constraints.txt
+
+with open('constraints.txt','r') as file: lines=file.readlines()
+lines = [line.replace('\n','').replace(' ','') for line in lines]
+
+def get_box_constraints(i,j):
+    constraints =  [line for line in lines if f'board[{i}][{j}]' in line] 
+    return constraints
+
+print(get_box_constraints(0,3))

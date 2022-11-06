@@ -12,16 +12,15 @@ board = [
     [0,0,5, 0,1,0, 3,0,0],
 ]
 def constraints(x, y, w, z):
-    f = open("constraints.txt", "a")
+    f = open("constraints2.txt", "a")
 
     for i in range(x, y):
         for j in range(w, z):
             for k in range(x,y):
                 for l in range(w, z):
                     if (k,l) != (i, j):
-                        temp = "board[",i,"]","[",j,"]!=","board[",k,"]","[",l,"]"
+                        temp = f'board[{i}][{j}]!=board[{k}][{l}]'
                         f.write(f'{temp}\n')
-
                         print("board[",i,"]","[",j,"]!=","board[",k,"]","[",l,"]" ) # have to fix spacing here
     f.close()
 constraints(0,3, 0,3)
