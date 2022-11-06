@@ -44,7 +44,7 @@ def sudokuGraphify(board:list)->Graph:
     # convert the board to a graph loop through each index pair and get adjacent and add it as a edge
     for i in range(0,len(board),1):
         for j in range(0,len(board),1):
-            constraints = get_constraints(board,i,j) # generate all the constraints for the current node (i,j)
+            constraints = get_constraints(board,i,j) # generate all the constraints for the current (from) node (i,j)
             adjacent = get_adjacent(board,i,j)
             for cell in adjacent:
                 from_node = Variable(f'board[{i}][{j}]',board[i][j],sudokuDomain)
@@ -57,4 +57,4 @@ def sudokuGraphify(board:list)->Graph:
 # Contains the correct amount of direct edges
 # Contains the current alldiff binarized constraints
 # Mising the box constraints
-graph = sudokuGraphify(board)
+graph: Graph = sudokuGraphify(board)
