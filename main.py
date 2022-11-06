@@ -2,28 +2,38 @@ import math
 import copy
 
 class Variable:
-    def __init__(self,name,domain):
+    def __init__(self,name,value,domain):
         self.name = name #  String to represent the name of the node (in the map example)
-        self.value = -1 # Default ==-1 which means its not holding any colors
+        self.value = value 
         self.domain = domain # Domain of the values the list can hold (initiliazed with the CSP Declared variable)
         return
-    
+    def __str__(self):
+        return f'{self.name}|{self.value}|{self.domain}'
+
 class Graph:
     def __init__(self):
-        self.nodes: int = 0 # Number of nodes
         self.edges:list = [] # List of edges
+        self.nodes: list = []
         return
         
-    def add_edge(self,node1,node2,constraint):
+    def add_edge(self,from_node:Variable,to_node:Variable,constraint:list):
         # AC-3 CSP uses two way directed edges
-        self.edges.append([node1,node2,constraint])
-        self.nodes+=1
+        self.edges.append([from_node,to_node,constraint])
+
+        # update list of nodes (check if node exists, if not true, append to list of nodes)
+        node_exists = False
+        for node in self.nodes:
+            if from_node.name==node.name:
+                node_exists = True
+        if node_exists==False: 
+            self.nodes.append(from_node)
+    
         return
     
     def view_graph(self): # Print as a list of edges
         print('From|To|Constraint')
         for edge in self.edges:
-            print(f'{edge[0].name}|{edge[1].name}|{eval(edge[2])}')
+            print(f'{edge[0].name}|{edge[1].name}|{edge[2]}')
         return
 
 class CSP:
@@ -52,8 +62,9 @@ def revise(edge):
         consistent = False
         
         for y in xj.domain: # iterate through the domain of xj
-            if eval(constraint)==True: 
-                consistent = True # To check consistency, evaluate the constraint for the given edge, if true, that means the constraint is met                
+            for a_constraint in constraint:
+                if eval(a_constraint)==True: 
+                    consistent = True # To check consistency, evaluate the constraint for the given edge, if true, that means the constraint is met                
         
         # if x can not be consistent with any values in the domain of y, remove x from xi's copied domain,
         if consistent!=True:
@@ -82,17 +93,17 @@ def ac3(csp:CSP):
     return True
 
 
-if __name__=='__main__':
+if __name__=='__main__': #To test AC-3 with the sqrt constraint example from m5-csp slide 17
     # Test the Graph DS and AC-3 with slide 17 example
     CSP_domain = [0,1,2,3,4,5,6,7,8,9]
     # Create the variables with a variable name and a common domain
-    x = Variable('X',CSP_domain)
-    y = Variable('Y',CSP_domain)
+    x = Variable('X',-1,CSP_domain)
+    y = Variable('Y',-1,CSP_domain)
     # Create the graph by inserting edges
     graph = Graph() # Initialize the graph object
     # Add the edges to the graph (with constraints)
-    graph.add_edge(x,y,'x==math.sqrt(y)')
-    graph.add_edge(y,x,'(y*y)==x')
+    graph.add_edge(x,y,['x==math.sqrt(y)'])
+    graph.add_edge(y,x,['(y*y)==x'])
     # Initializing CSP with the graph
     csp = CSP(graph)
     # Add the variables to the CSP
