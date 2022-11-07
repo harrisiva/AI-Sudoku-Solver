@@ -1,3 +1,2 @@
-assignment = {'board[0][0]':0}
-for x in assignment:
-    print(x)
+s = 'board[6][0]!=board[7][2]'
+print(s[0:11])
