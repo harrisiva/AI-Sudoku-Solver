@@ -56,9 +56,6 @@ if __name__=='__main__':
         # Run a backtracking search algorithm with AC-3 as the inference
         assignment = {}
 
-        def backtracking():
-            return
-        
         def selected_unassigned_variable(csp:CSP): # returns a list of MRV based nodes using insort (NOTE: insort not implemented yet, it iterates and finds MRV each time currently)
             # Choose a variable without assignment (node.value==0)
             # if the node.value == 0 (i.e., len(node.domain)>1)
@@ -75,8 +72,19 @@ if __name__=='__main__':
                         mrv_node = node
             return mrv_node
 
-        def backtracking_search():
+        def is_complete(assignment:dict, csp:CSP):
+            # Check if every node in the CSP!=0 (depending on how we handle rest of backtracking)
+            # Check if every node in the CSP!=0 or has an assignment in the dictionary by key
+            for node in csp.graph.nodes:
+                if (node.value==0) and (node.name not in assignment.values()): return False
+            return True
 
+        def backtrack(assignment,csp):
+            if is_complete(assignment,csp): return assignment
             return
+    
+        def backtracking_search(csp):
+            assignment = {}
+            return backtrack(assignment,csp)
         
         node = selected_unassigned_variable(csp)
