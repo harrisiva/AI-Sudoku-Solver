@@ -56,7 +56,7 @@ def sudokuGraphify(board:list)->Graph:
 
 if __name__=='__main__':
     # 0's are blank cells (no-assignments)
-    board = [
+    solveableBoard = [
         [4,8,3, 9,2,1, 6,5,7],
         [9,6,0, 3,4,5, 8,0,1],
         [2,5,1, 8,7,6, 4,9,3],
@@ -69,8 +69,7 @@ if __name__=='__main__':
         [0,1,0, 2,5,3, 7,6,9],
         [6,9,5, 4,1,7, 0,8,2],
     ]
-    """
-        board = [
+    unsolvableBoard = [
         [0,0,3, 0,2,0, 6,0,0],
         [9,0,0, 3,0,5, 0,0,1],
         [0,0,1, 8,0,6, 4,0,0],
@@ -83,7 +82,8 @@ if __name__=='__main__':
         [8,0,0, 2,0,3, 0,0,9],
         [0,0,5, 0,1,0, 3,0,0],
     ]
-    """
+    
+    board = solveableBoard
     # Set up CSP
     graph: Graph = sudokuGraphify(board) # Convert the board into a graph
     csp = CSP(graph) # Initialize an instance of CSP with the graph
