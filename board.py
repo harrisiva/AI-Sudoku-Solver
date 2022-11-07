@@ -59,6 +59,21 @@ def sudokuGraphify(board:list)->Graph:
 if __name__=='__main__':
     # 0's are blank cells (no-assignments)
     board = [
+        [4,8,3, 9,2,1, 6,5,7],
+        [9,6,0, 3,4,5, 8,0,1],
+        [2,5,1, 8,7,6, 4,9,3],
+
+        [5,4,8, 1,3,2, 9,7,6],
+        [7,2,9, 5,0,0, 1,3,8],
+        [1,0,6, 7,9,8, 2,0,5],
+
+        [3,7,2, 6,8,9, 5,1,4],
+        [8,1,0, 2,5,3, 7,6,9],
+        [6,9,5, 4,1,7, 0,8,2],
+    ]
+
+    """
+        board = [
         [0,0,3, 0,2,0, 6,0,0],
         [9,0,0, 3,0,5, 0,0,1],
         [0,0,1, 8,0,6, 4,0,0],
@@ -71,6 +86,8 @@ if __name__=='__main__':
         [8,0,0, 2,0,3, 0,0,9],
         [0,0,5, 0,1,0, 3,0,0],
     ]
+    """
+
     
     graph: Graph = sudokuGraphify(board) # Convert the board into a graph
     # Create a CSP with the graph
@@ -79,6 +96,7 @@ if __name__=='__main__':
     for node in graph.nodes: csp.variables.append(node)
     csp.domain = SUDOKUDOMAIN
     if ac3(csp,board): 
+        #print(csp)
         for node in csp.graph.nodes:
             if len(node.domain)==1:
                 board[int(node.name.split('[')[1][:1])][int(node.name.split('[')[2][:1])] = node.domain[0]
