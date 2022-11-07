@@ -41,12 +41,15 @@ if __name__=='__main__':
     csp.domain = SUDOKUDOMAIN # set the global domain list as the CSP instances domain
     # Call AC-3 with the CSP
     if ac3(csp,board): 
-        #print(csp)
         for node in csp.graph.nodes:
             node:Variable = node
-            if len(node.domain)==1:
-                board[node.i][node.j] = node.domain[0] # set the value and the node value
+            if len(node.domain)==1: # If any nodes domain is trimmed to 1
+                # Set this in the board (to update the board for constraint verification)
+                board[node.i][node.j] = node.domain[0] 
+                # Set this as the nodes value (for selecting unassigned MRV's)
+                node.value = node.domain[0]
         print(np.array(board))
+
         # Once a board is deemed to be unsolveable with AC-3 alone 
         # If any domain len>1
 
@@ -56,12 +59,24 @@ if __name__=='__main__':
         def backtracking():
             return
         
-        def selected_unassigned_variable():
-            # Choose a variable without assignment
+        def selected_unassigned_variable(csp:CSP): # returns a list of MRV based nodes using insort (NOTE: insort not implemented yet, it iterates and finds MRV each time currently)
+            # Choose a variable without assignment (node.value==0)
             # if the node.value == 0 (i.e., len(node.domain)>1)
             # choose the node with the smallest domain (miniming remaining values)
-            return
+            graph: Graph = csp.graph
+            minimum = 9 # extrema max (no node/cell can have more than 8 values)
+            mrv_node = None # holder for the node with minimum remaning values
+            for node in graph.nodes:
+                node:Variable = node
+                if node.value==0:
+                    node_domain_length = len(node.domain)
+                    if node_domain_length<minimum:
+                        minimum = node_domain_length
+                        mrv_node = node
+            return mrv_node
 
         def backtracking_search():
 
             return
+        
+        node = selected_unassigned_variable(csp)
