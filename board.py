@@ -2,8 +2,6 @@ from classes import Graph, Variable, CSP, ac3
 import numpy as np
 SUDOKUDOMAIN = [1,2,3,4,5,6,7,8,9] # used in sudokuGraphify and main
 
-# Load the box constratins from constraints.txt
-with open('constraints.txt','r') as file: lines=[line.replace('\n','') for line in file.readlines()]
 
 def get_adjacent(board,i,j): # Return a list of adjacent indexs as tuples, use it for the box perhaps and to create edges
     adjacent = []
@@ -25,6 +23,8 @@ def get_alldiff_constraints(board,i,j): # Given the puzzle and a cell's index, t
     return constraints
 
 def get_box_constraints(i,j):
+    # Load the box constratins from constraints.txt
+    with open('constraints.txt','r') as file: lines=[line.replace('\n','') for line in file.readlines()]
     return [line for line in lines if f'board[{i}][{j}]' in line] 
 
 def get_constraints(board,i,j):
