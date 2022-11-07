@@ -108,10 +108,7 @@ if __name__=='__main__':
                             board[node.i][node.j]=node.value 
             # check if the variable is still consistent (relative to the board)
             consistent = True
-            for constraint in constraints:
-                print(constraint, eval(constraint))
-                if eval(constraint)==False:
-                    consistent = False
+            for constraint in constraints: consistent=False if eval(constraint)==False else consistent
 
             # Reset the assignment variables back to their original value
             for i in range(0,len(modified_nodes),1): modified_nodes[i].value=modified_values[i]
@@ -126,7 +123,6 @@ if __name__=='__main__':
                 # check if value is consistent with assignment
                 print(value, is_consistent(assignment,variable, value, csp, board))
                 print(np.array(board))
-                pass
             return
     
         def backtracking_search(csp, board):
