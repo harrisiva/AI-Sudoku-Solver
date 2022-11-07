@@ -45,5 +45,23 @@ if __name__=='__main__':
         for node in csp.graph.nodes:
             node:Variable = node
             if len(node.domain)==1:
-                board[node.i][node.j] = node.domain[0]
+                board[node.i][node.j] = node.domain[0] # set the value and the node value
         print(np.array(board))
+        # Once a board is deemed to be unsolveable with AC-3 alone 
+        # If any domain len>1
+
+        # Run a backtracking search algorithm with AC-3 as the inference
+        assignment = {}
+
+        def backtracking():
+            return
+        
+        def selected_unassigned_variable():
+            # Choose a variable without assignment
+            # if the node.value == 0 (i.e., len(node.domain)>1)
+            # choose the node with the smallest domain (miniming remaining values)
+            return
+
+        def backtracking_search():
+
+            return
