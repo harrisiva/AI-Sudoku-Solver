@@ -52,24 +52,24 @@ class CSP:
 
 
 def revise(edge, board:list): 
-    # set the variables 
+    # Set up the variables
     xi:Variable = edge[0]
-    xiOriginal = copy.deepcopy(xi.value)
-    constraints = edge[2]
-    revised = False
+    xiOriginal,constraints,revised = copy.deepcopy(xi.value), edge[2], False
 
-    domain_copy = copy.deepcopy(xi.domain)
+    # Make consistent (i.e., validate constraints and trim xi's domain)
+    domain_copy = copy.deepcopy(xi.domain) # Removals will be done to this list (as the original will be iterated on)
     for x in xi.domain:
-        board[xi.i][xi.j]=x
-        for constraint in constraints:
-            if eval(constraint)==False:
+        board[xi.i][xi.j]=x # Temporarily set the cell to hold x (for constraint evaluation purposes)
+        for constraint in constraints: 
+            if eval(constraint)==False: # Since the constraints for this CSP are alldiff based, remove x if any of the constraints are not met
                 if x in domain_copy: domain_copy.remove(x)
 
+    # Update xi's domain if a removal function was called and update revised value based on the latter
     if len(domain_copy)!=len(xi.domain):
         xi.domain=copy.deepcopy(domain_copy)
         revised = True
     
-    board[xi.i][xi.j] = copy.deepcopy(xiOriginal)
+    board[xi.i][xi.j] = copy.deepcopy(xiOriginal) # Reset the cell's value
     return revised
 
 def ac3(csp:CSP, board:list): # NOTE: AC-3 is fine, there are no issues with it
