@@ -3,6 +3,7 @@ from classes import Graph, Variable, CSP
 from utilities import sudokuGraphify
 from functions import ac3
 import numpy as np # Only used to view the sudoku board
+import copy
 
 if __name__=='__main__':
     # 0's are blank cells (no-assignments)
@@ -79,12 +80,46 @@ if __name__=='__main__':
                 if (node.value==0) and (node.name not in assignment.values()): return False
             return True
 
-        def backtrack(assignment,csp):
+        def is_consistent(assignment,variable, value, csp, board):
+            # original copy of board for resetting
+            original_board = copy.deepcopy(board)
+
+            # find one of the edges where this variable is a from node
+            # get a copy of the constraints
+            constraints = None
+            for edge in csp.graph.edges:
+                if edge[0].name == variable.name:
+                    print(edge[0].name)
+                    break
+            print(constraints)
+            if constraints==None: return False # never the case (just here for fun, delete later)
+
+            # set this value as the variables value in the board
+            board[variable.i][variable.j]=value
+            print (board)
+            board = original_board
+            # set all the variable value pairs in the assignment list as assignments
+            for var in assignment: pass
+                
+
+            # check if the variable is still consistent (relative to the board)
+            # set the consistency boolean based on the latter
+            # reset the board to its original state
+            # return the consistency boolean value
+            return 
+
+        def backtrack(assignment,csp, board):
             if is_complete(assignment,csp): return assignment
+            variable:Variable = selected_unassigned_variable(csp) # uses the MRV heuristic
+            for value in variable.domain:
+                # check if value is consistent with assignment
+                print(value, is_consistent(assignment,variable, value, csp, board))
+                pass
             return
     
-        def backtracking_search(csp):
+        def backtracking_search(csp, board):
             assignment = {}
-            return backtrack(assignment,csp)
+            return backtrack(assignment,csp, board)
         
-        node = selected_unassigned_variable(csp)
+        backtracking_search(csp, board)
+        #NOTE: Constraints include constraints not starting from the current node (this is wrong, need to fix the part where the constraints are loaded in)
