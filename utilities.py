@@ -52,6 +52,8 @@ def get_constraints(board,i,j):
     all_diff_constraints = get_alldiff_constraints(board,i,j)
     for line in all_diff_constraints: constraints.append(line)
     box_constraints = get_box_constraints(i,j)
+    print(box_constraints)
+    exit()
     for line in box_constraints: constraints.append(line)
     return constraints
 
