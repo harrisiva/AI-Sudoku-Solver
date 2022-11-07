@@ -40,6 +40,7 @@ if __name__=='__main__':
     csp = CSP(graph) # Initialize an instance of CSP with the graph
     for node in graph.nodes: csp.variables.append(node) # Append graph's nodes to the CSP instances variables list
     csp.domain = SUDOKUDOMAIN # set the global domain list as the CSP instances domain
+    
     # Call AC-3 with the CSP
     if ac3(csp,board): 
         for node in csp.graph.nodes:
@@ -98,7 +99,7 @@ if __name__=='__main__':
             modified_nodes = []
             modified_values = []
             # set all the variable value pairs in the assignment list as cell values
-            if len(assignment)>=0:
+            if len(assignment)>0:
                 for var in assignment: 
                     for node in csp.graph.nodes:
                         if node.name==var:
@@ -117,13 +118,56 @@ if __name__=='__main__':
             return consistent
 
         def backtrack(assignment,csp, board):
+            print(assignment)
             if is_complete(assignment,csp): return assignment
             variable:Variable = selected_unassigned_variable(csp) # uses the MRV heuristic
+            
             for value in variable.domain:
                 # check if value is consistent with assignment
-                print(value, is_consistent(assignment,variable, value, csp, board))
-                print(np.array(board))
-            return
+                if is_consistent(assignment,variable, value, csp, board):
+                    
+                    board_copy = copy.deepcopy(board)
+                    
+                     # keep a copy domains pre trim (inference)
+                    pre_infrences = {}
+                    for node in csp.graph.nodes: pre_infrences[node.name]=copy.deepcopy(node.domain)
+
+                    # Add variable to the assignment
+                    assignment[variable.name]=value # add the variable value pair to the assignments dictionary
+                    variable.value = value # assign the value to the variable
+                    board[variable.i][variable.j]=variable.value # update the board to hold the assignment
+                    # update the constraints for all from_node.name==variable.name nodes:
+                    # if variable.value!=0, append constraint variable.name==variable.value
+                    for edge in csp.graph.edges:
+                        if edge[0].name==variable.name: edge[2].append(f'board[{variable.i}][{variable.j}]=={variable.value}')
+                    
+
+                    # Get infrences
+                    infered = ac3(csp,board)
+                    if infered!=False:
+
+                        # add the inferences to assignment by updating the variables and board to hold the single length domain values
+                        for node in csp.graph.nodes:
+                            if len(node.domain)==1:
+                                node.value = node.domain[0]
+                                board[node.i][node.j]=node.value
+                        
+                        print(np.array(board))
+                        result = backtrack(assignment,csp,board)
+
+                        if isinstance(result,dict):
+                            return result
+
+                    # remove var and its value and infrences from assignment 
+                    del assignment[variable.name]
+                    variable.value = 0
+                    board[variable.i][variable.j]=0
+                    
+                    # remove infrences from assignment by reseting the board to the state before we called AC-3 and resetting the domain of the changed variables
+                    board = copy.deepcopy(board_copy)
+                    for node in csp.graph.nodes: node.domain = copy.deepcopy(pre_infrences[node.name])
+            
+            return False
     
         def backtracking_search(csp, board):
             assignment = {}
