@@ -8,10 +8,10 @@ lines = [line.replace('\n','').replace(' ','') for line in lines]
 
 def get_adjacent(board,i,j): # Return a list of adjacent indexs as tuples, use it for the box perhaps and to create edges
     adjacent = []
-    if i!=len(board[0])-1: adjacent.append(f'board[{i+1}][{j}]') # Down (if not last row)
-    if i!=0: adjacent.append(f'board[{i-1}][{j}]')  # Up (if not first row)
-    if j!=len(board)-1: adjacent.append(f'board[{i}][{j+1}]') # Right (if not right most col)
-    if j!=0: adjacent.append(f'board[{i}][{j-1}]') # Left (if not left most col)
+    if i!=len(board[0])-1: adjacent.append([f'board[{i+1}][{j}]',i+1,j]) # Down (if not last row)
+    if i!=0: adjacent.append([f'board[{i-1}][{j}]',i-1,j])  # Up (if not first row)
+    if j!=len(board)-1: adjacent.append([f'board[{i}][{j+1}]',i,j+1]) # Right (if not right most col)
+    if j!=0: adjacent.append([f'board[{i}][{j-1}]',i,j-1]) # Left (if not left most col)
     return adjacent
 
 def get_alldiff_constraints(board,i,j): # Given the puzzle and a cell's index, this function returns the all diff as a binary constraint relative to that cell
@@ -37,24 +37,23 @@ def get_constraints(board,i,j):
     return constraints
 
 def sudokuGraphify(board:list)->Graph:
-    graph = Graph()
-    # convert the board to a graph loop through each index pair and get adjacent and add it as a edge
+    graph = Graph() # Initialize a graph object, the board will be "moved" to this
+    # Nested for loop to convert the board to a graph
     for i in range(0,len(board),1):
         for j in range(0,len(board),1):
+
+            # Get the constraints related to the current node (nested list based)
             constraints = get_constraints(board,i,j) # generate all the constraints for the current (from) node (i,j)
+            if board[i][j]!=0: constraints.append(f'board[{i}][{j}]=={board[i][j]}') # If the node has a value, add it to the constraints list as board[i][j]==value
             
-            # If the node has a value, add it to the constraints as board[i][j]==value
-            if board[i][j]!=0: constraints.append(f'board[{i}][{j}]=={board[i][j]}')
-            
-            adjacent = get_adjacent(board,i,j)
+            # Create a from_node, to_node (based on the adjacent list retrvied from the function called in the line below), and add both to the edge list with the list of constraints
+            adjacent = get_adjacent(board,i,j) # Get a list of adjacent cells (index based)
             for cell in adjacent:
-                from_node = Variable(f'board[{i}][{j}]',board[i][j],SUDOKUDOMAIN if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
-                to_node = Variable(cell,eval(cell),SUDOKUDOMAIN)
+                from_node = Variable(f'board[{i}][{j}]',i,j,board[i][j],SUDOKUDOMAIN if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
+                to_node = Variable(cell[0],cell[1],cell[2],eval(cell[0]),SUDOKUDOMAIN if board[cell[1]][cell[2]]==0 else board[cell[1]][cell[2]])
                 graph.add_edge(from_node,to_node,constraints)
-        
+
     return graph
-
-
 
 if __name__=='__main__':
     # 0's are blank cells (no-assignments)
@@ -71,7 +70,6 @@ if __name__=='__main__':
         [8,1,0, 2,5,3, 7,6,9],
         [6,9,5, 4,1,7, 0,8,2],
     ]
-
     """
         board = [
         [0,0,3, 0,2,0, 6,0,0],
@@ -87,17 +85,16 @@ if __name__=='__main__':
         [0,0,5, 0,1,0, 3,0,0],
     ]
     """
-
-    
+    # Set up CSP
     graph: Graph = sudokuGraphify(board) # Convert the board into a graph
-    # Create a CSP with the graph
-    csp = CSP(graph)
-    # Add the domain to the CSP along with the graph's nodes are variables
-    for node in graph.nodes: csp.variables.append(node)
-    csp.domain = SUDOKUDOMAIN
+    csp = CSP(graph) # Initialize an instance of CSP with the graph
+    for node in graph.nodes: csp.variables.append(node) # Append graph's nodes to the CSP instances variables list
+    csp.domain = SUDOKUDOMAIN # set the global domain list as the CSP instances domain
+    # Call AC-3 with the CSP
     if ac3(csp,board): 
         #print(csp)
         for node in csp.graph.nodes:
+            node:Variable = node
             if len(node.domain)==1:
-                board[int(node.name.split('[')[1][:1])][int(node.name.split('[')[2][:1])] = node.domain[0]
+                board[node.i][node.j] = node.domain[0]
         print(np.array(board))

@@ -2,10 +2,11 @@ import math
 import copy
 
 class Variable:
-    def __init__(self,name,value,domain):
+    def __init__(self,name,i,j,value,domain):
         self.name = name #  String to represent the name of the node (in the map example)
         self.value = value 
         self.domain = domain # Domain of the values the list can hold (initiliazed with the CSP Declared variable)
+        self.i,self.j = i,j
         return
     def __str__(self):
         return f'{self.name}|{self.value}|{self.domain}'
@@ -52,15 +53,14 @@ class CSP:
 
 def revise(edge, board:list): 
     # set the variables 
-    xi = edge[0]
-    xj = edge[1] # Dont really have to compare it realtive to this?
-    xi_og = copy.deepcopy(xi.value)
+    xi:Variable = edge[0]
+    xiOriginal = copy.deepcopy(xi.value)
     constraints = edge[2]
     revised = False
 
     domain_copy = copy.deepcopy(xi.domain)
     for x in xi.domain:
-        board[int(xi.name.split('[')[1][:1])][int(xi.name.split('[')[2][:1])]=x
+        board[xi.i][xi.j]=x
         for constraint in constraints:
             if eval(constraint)==False:
                 if x in domain_copy: domain_copy.remove(x)
@@ -69,7 +69,7 @@ def revise(edge, board:list):
         xi.domain=copy.deepcopy(domain_copy)
         revised = True
     
-    board[int(xi.name.split('[')[1][:1])][int(xi.name.split('[')[2][:1])] = copy.deepcopy(xi_og)
+    board[xi.i][xi.j] = copy.deepcopy(xiOriginal)
     return revised
 
 def ac3(csp:CSP, board:list): # NOTE: AC-3 is fine, there are no issues with it
