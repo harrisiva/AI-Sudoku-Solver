@@ -2,7 +2,7 @@ from constants import *
 from classes import Graph, Variable, CSP
 from utilities import sudokuGraphify
 from functions import ac3
-import numpy as np
+import numpy as np # Only used to view the sudoku board
 
 if __name__=='__main__':
     # 0's are blank cells (no-assignments)
