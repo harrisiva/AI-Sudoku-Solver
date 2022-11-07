@@ -27,10 +27,13 @@ def ac3(csp:CSP, board:list): # NOTE: AC-3 is fine, there are no issues with it
     queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
     with open('log.txt','a+') as file:
         file.write(f'{datetime.now()}:: Initial queue length:{len(queue)}\n')
+        step_count = 0
         while len(queue)>0:
             arc = queue.pop() # order is irrelevant since it is commutative
+            file.write(f'\t({step_count}):: Queue length:{len(queue)}\n')
             if revise(arc,board): # if there were any x in the from nodes domain that would never work with the to domain and was therefore trimmed
                 if len(arc[0].domain)==0: return False # if no value in x, can be used as a consistent value with arc[0] with relation to arc[1], return false to indiciate that the problem is not solvable
                 for edge in csp.graph.edges:  # Find all neighbots to arc[0] <- find edges that have edge[1]==arc[0] and add them back to the queue
                     if edge[1]==arc[0]: queue.append(edge)
+            step_count+=1
     return True

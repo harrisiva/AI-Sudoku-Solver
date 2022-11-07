@@ -33,7 +33,7 @@ if __name__=='__main__':
         [0,0,5, 0,1,0, 3,0,0],
     ]
     
-    board = solveableBoard
+    board = unsolvableBoard
     # Set up CSP
     graph: Graph = sudokuGraphify(board) # Convert the board into a graph
     csp = CSP(graph) # Initialize an instance of CSP with the graph
