@@ -80,27 +80,24 @@ if __name__=='__main__':
                 if (node.value==0) and (node.name not in assignment.values()): return False
             return True
 
-        def is_consistent(assignment,variable, value, csp, board):
-            # original copy of board for resetting
-            original_board = copy.deepcopy(board)
+        def is_consistent(assignment,variable, value, csp, given_board):
+            # original copy of board, the changes are done on this to preserve reference related issues
+            board = copy.deepcopy(given_board)
 
             # find one of the edges where this variable is a from node
             # get a copy of the constraints
             constraints = None
             for edge in csp.graph.edges:
                 if edge[0].name == variable.name:
-                    print(edge[0].name)
+                    constraints = edge[2]
                     break
-            print(constraints)
-            if constraints==None: return False # never the case (just here for fun, delete later)
 
             # set this value as the variables value in the board
             board[variable.i][variable.j]=value
-            print (board)
-            board = original_board
+
             # set all the variable value pairs in the assignment list as assignments
-            for var in assignment: pass
-                
+            for var in assignment: 
+                print(var)
 
             # check if the variable is still consistent (relative to the board)
             # set the consistency boolean based on the latter
@@ -114,6 +111,7 @@ if __name__=='__main__':
             for value in variable.domain:
                 # check if value is consistent with assignment
                 print(value, is_consistent(assignment,variable, value, csp, board))
+                print(np.array(board))
                 pass
             return
     
