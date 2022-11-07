@@ -5,6 +5,8 @@ from functions import ac3
 import numpy as np # Only used to view the sudoku board
 import copy
 
+#NOTE: ADD PREMATURE INPUT CHECKS
+
 if __name__=='__main__':
     # 0's are blank cells (no-assignments)
     solveableBoard = [
@@ -35,6 +37,7 @@ if __name__=='__main__':
     ]
     
     board = unsolvableBoard
+
     # Set up CSP
     graph: Graph = sudokuGraphify(board) # Convert the board into a graph
     csp = CSP(graph) # Initialize an instance of CSP with the graph
@@ -50,13 +53,13 @@ if __name__=='__main__':
                 board[node.i][node.j] = node.domain[0] 
                 # Set this as the nodes value (for selecting unassigned MRV's)
                 node.value = node.domain[0]
+    
         print(np.array(board))
 
         # Once a board is deemed to be unsolveable with AC-3 alone 
         # If any domain len>1
 
         # Run a backtracking search algorithm with AC-3 as the inference
-        assignment = {}
 
         def selected_unassigned_variable(csp:CSP): # returns a list of MRV based nodes using insort (NOTE: insort not implemented yet, it iterates and finds MRV each time currently)
             # Choose a variable without assignment (node.value==0)
@@ -175,3 +178,5 @@ if __name__=='__main__':
         
         backtracking_search(csp, board)
         #NOTE: Constraints include constraints not starting from the current node (this is wrong, need to fix the part where the constraints are loaded in)
+
+
