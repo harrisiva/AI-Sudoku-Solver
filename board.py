@@ -4,7 +4,7 @@ SUDOKUDOMAIN = [1,2,3,4,5,6,7,8,9] # used in sudokuGraphify and main
 
 # Code to load the box constratins from constraints.txt
 with open('constraints.txt','r') as file: lines=file.readlines()
-lines = [line.replace('\n','').replace(' ','') for line in lines]
+lines = [line.replace('\n','') for line in lines]
 
 def get_adjacent(board,i,j): # Return a list of adjacent indexs as tuples, use it for the box perhaps and to create edges
     adjacent = []
@@ -67,7 +67,7 @@ if __name__=='__main__':
         [1,0,6, 7,9,8, 2,0,5],
 
         [3,7,2, 6,8,9, 5,1,4],
-        [8,1,0, 2,5,3, 7,6,9],
+        [0,1,0, 2,5,3, 7,6,9],
         [6,9,5, 4,1,7, 0,8,2],
     ]
     """
