@@ -95,15 +95,29 @@ if __name__=='__main__':
             # set this value as the variables value in the board
             board[variable.i][variable.j]=value
 
-            # set all the variable value pairs in the assignment list as assignments
-            for var in assignment: 
-                print(var)
-
+            modified_nodes = []
+            modified_values = []
+            # set all the variable value pairs in the assignment list as cell values
+            if len(assignment)>=0:
+                for var in assignment: 
+                    for node in csp.graph.nodes:
+                        if node.name==var:
+                            modified_nodes.append(node) # NOTE: Loop at the end, and set value back to zero (assuming zero is the original)
+                            modified_values.append(node.value)
+                            node.value=assignment[var] # NOTE: Need to reset at the end
+                            board[node.i][node.j]=node.value 
             # check if the variable is still consistent (relative to the board)
-            # set the consistency boolean based on the latter
-            # reset the board to its original state
-            # return the consistency boolean value
-            return 
+            consistent = True
+            for constraint in constraints:
+                print(constraint, eval(constraint))
+                if eval(constraint)==False:
+                    consistent = False
+
+            # Reset the assignment variables back to their original value
+            for i in range(0,len(modified_nodes),1): modified_nodes[i].value=modified_values[i]
+
+            # reset the board to its original state NOTE: Not required as all changes are made on the deepcopy of the board
+            return consistent
 
         def backtrack(assignment,csp, board):
             if is_complete(assignment,csp): return assignment
