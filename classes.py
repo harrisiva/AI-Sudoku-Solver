@@ -49,39 +49,30 @@ class CSP:
             returnable += f'{variable.name}: {variable.domain}\n'
         return returnable
 
+
 def revise(edge, board:list): 
-    xi:Variable = edge[0]
-    xj:Variable = edge[1]
-    constraint:str = edge[2]
-    revised:bool = False # Set revised initially to be false
+    # set the variables 
+    xi = edge[0]
+    xj = edge[1] # Dont really have to compare it realtive to this?
+    xi_og = copy.deepcopy(xi.value)
+    constraints = edge[2]
+    revised = False
+
+    domain_copy = copy.deepcopy(xi.domain)
+    for x in xi.domain:
+        board[int(xi.name.split('[')[1][:1])][int(xi.name.split('[')[2][:1])]=x
+        for constraint in constraints:
+            if eval(constraint)==False:
+                if x in domain_copy: domain_copy.remove(x)
+
+    if len(domain_copy)!=len(xi.domain):
+        xi.domain=copy.deepcopy(domain_copy)
+        revised = True
     
-    # get a copy of xi's domain
-    xi_domain_cpy = copy.deepcopy(xi.domain)
-
-    for x in xi.domain: # itterate through the original xi domain
-        consistent = False
-        
-        for y in xj.domain: # iterate through the domain of xj
-            for a_constraint in constraint:
-                    if eval(a_constraint)==True: # NOTE: Since it should be alldiff, we need to modify the AC-3 algorithm to consider all the constraints when evaluating the domain
-                        consistent = True # To check consistency, evaluate the constraint for the given edge, if true, that means the constraint is met                
-
-        # if x can not be consistent with any values in the domain of y, remove x from xi's copied domain,
-        if consistent!=True:
-            xi_domain_cpy.remove(x)            
-
-    # If the length of the original domain is 
-    # not equal to the length of the copied domain, 
-    # set revised to be true as the length of the 
-    # original domain will change based on th removal of values.
-    # and set xi.domain to be the same as the copy
-    if len(xi_domain_cpy)!=len(xi.domain): 
-        revised=True 
-        xi.domain = copy.deepcopy(xi_domain_cpy)
-
+    board[int(xi.name.split('[')[1][:1])][int(xi.name.split('[')[2][:1])] = copy.deepcopy(xi_og)
     return revised
 
-def ac3(csp:CSP, board:list):
+def ac3(csp:CSP, board:list): # NOTE: AC-3 is fine, there are no issues with it
     queue:list = [edge for edge in csp.graph.edges] # add all the arcs (edges) from the csp's graph to the "queue"
     while len(queue)>0:
         arc = queue.pop() # order is irrelevant since it is commutative
@@ -89,7 +80,6 @@ def ac3(csp:CSP, board:list):
             if len(arc[0].domain)==0: return False # if no value in x, can be used as a consistent value with arc[0] with relation to arc[1], return false to indiciate that the problem is not solvable
             for edge in csp.graph.edges:  # Find all neighbots to arc[0] <- find edges that have edge[1]==arc[0] and add them back to the queue
                 if edge[1]==arc[0]: queue.append(edge)
-
     return True
 
 

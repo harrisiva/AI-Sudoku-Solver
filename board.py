@@ -1,4 +1,5 @@
 from classes import Graph, Variable, CSP, ac3
+import numpy as np
 SUDOKUDOMAIN = [1,2,3,4,5,6,7,8,9] # used in sudokuGraphify and main
 
 # Code to load the box constratins from constraints.txt
@@ -50,6 +51,7 @@ def sudokuGraphify(board:list)->Graph:
                 from_node = Variable(f'board[{i}][{j}]',board[i][j],SUDOKUDOMAIN if board[i][j]==0 else [board[i][j]]) # Last field to make sure that the domain for assigned variables is limited to the value assigned to it alone
                 to_node = Variable(cell,eval(cell),SUDOKUDOMAIN)
                 graph.add_edge(from_node,to_node,constraints)
+        
     return graph
 
 
@@ -76,6 +78,8 @@ if __name__=='__main__':
     # Add the domain to the CSP along with the graph's nodes are variables
     for node in graph.nodes: csp.variables.append(node)
     csp.domain = SUDOKUDOMAIN
-    # call ac-3 with the csp and see what happens :)
     if ac3(csp,board): 
-        print(csp)
+        for node in csp.graph.nodes:
+            if len(node.domain)==1:
+                board[int(node.name.split('[')[1][:1])][int(node.name.split('[')[2][:1])] = node.domain[0]
+        print(np.array(board))
