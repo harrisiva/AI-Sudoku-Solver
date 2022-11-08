@@ -25,9 +25,10 @@ for i in range(0,len(board),1):
         name = f'{ROW_INDEX_AS_KEY[i]}{j+1}' # j+1 because we are mapping 0 index as 1
         domain = INITIAL_STANDARD_DOMAIN if board[i][j]==0 else [board[i][j]]
         value = board[i][j]
-        
+        # Load the constraints up as well
+
         domains[name]=domain
-        assignments[name]=value
+        assignments[name]=value # only assign if zero is there, else dont add a key value pair
 
 print(domains)
 print(assignments)
@@ -37,5 +38,13 @@ print(assignments)
 # j is preserved 
 
 
+# to get all dif
+# loop through the entire board for a given index (i,j)
+# for row in board:
+    # for col in board:
+        # if row==i:
+            # append the entire row keeping the column the same
+        # if col==j and row!=i:
+            # append i,j
 
 # convert old constraints using maping functions and load all constraints onto a file
