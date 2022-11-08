@@ -1,6 +1,23 @@
 from constants import *
 from copy import deepcopy as asvalue
+import numpy as np
 # MODEL 2
+
+def viewBoard(variables, assignments):
+    tempMat = [
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+    ]
+    for variable in variables: tempMat[ROW_LETTER_AS_KEY[variable[0]]][int(variable[1])-1] = assignments[variable]
+    print(np.array(tempMat))
+    return
 
 def gen_box_constraints():
     board = [
@@ -134,12 +151,12 @@ if ac3(variables,domains,assignments,constraints):
 
     # Check (based) on assignments if the puzzle is solved
     solved = True
-    for variable in variables: solved = False if assignments[variable]!=0 else solved
+    for variable in variables: solved = False if assignments[variable]==0 else solved
 
     print(f'Solved with AC-3 alone: {solved}')
-
+    viewBoard(variables,assignments)
     if solved==False:
-        print("Executing backtracking with AC-3 as the inference")
+        print("Executing backtracking with AC-3 as the inference function")
         
         # Utility functions for backtracking
         def is_complete(assignments): # Check if every variable has an assignment (the dictionary has a default value of 0 for each assignment)
@@ -165,7 +182,6 @@ if ac3(variables,domains,assignments,constraints):
                 if evaluate_constraint(constraint,assignments_copy)==False: return False
             return True
 
-
         def infer(variables,domains,assignments,constraints): # Returns inferences as a dict and the updated (copy as value) domains, assignments, and constraints
             # create a copy as value of everything
             variables_copy = asvalue(variables)
@@ -186,29 +202,46 @@ if ac3(variables,domains,assignments,constraints):
                 return inferences, domains_copy, constraints_copy, assignments_copy #return the inferences dictionary, new domain, constraints, and assignments
             return False,False,False,False, # if AC-3 fails, return false
 
-        # For backtracking, rather than taking instances of ds's, we just take the dictionaries
+        # For backtracking, rather than taking instances of ds's, we just take the dictionaries (modified, not consistent with slides psuedocode)
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
-            if is_complete(assignments): return assignments
-            variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic
-            for value in domains[variable]: # for each value in the selected variables domain
-                # check if the value is consistent with the current assignments
-                if is_consistent(variable,value,assignments,constraints):
-                    assignments[variable]=value # add var=value to the assignment by upadting the variables assignment
-                    
-                    # pre_inference = domains
-                    inferences, domains_copy, assignments_copy, constraints_copy = infer(variables, domains, assignments, constraints)
-                    # Inferences are newly trimmed domains and assignments based on this assignment
-                    # if inferences did not fail
-                    if inferences!=False:
-                            # no need to add inferences into assignment? (relative to recursives stack)
-                            # call backtrack again with the copies (excluding inferences)
-                # remove variable=value (reset to original value) and inferences (reset domains and set the non single length domains as 0 to represent unassigned status) from the assignment 
-            # return failure (dictionary with an empty -1 as status)
+            print("Board at the start of Backtrack Call:")
+            viewBoard(variables, assignments)
 
-        backtrack(variables,domains,assignments,constraints)    
-    
-        # def backtrack_search(csp<-the four variables without the indexes)
-            # remove all unassigned values from the assignment dictionary and pass this as the assignment instead
-            # also pass in sorted MRV list into the backtrack algorithm
+            # Success base case
+            if is_complete(assignments):
+                print(assignments) 
+                print('\t\tAssignments deteremined to be complete')
+                return domains,assignments,constraints
+
+            variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic
+            print(f'Selected Variable: {variable}')
+            print(f'Selected Variable\'s Domain: {domains[variable]}')
+            
+            original_value = asvalue(assignments[variable])
+            for value in domains[variable]: # for each value in the selected variables domain
+                print(f'\t{variable}\'s Selected Value: {value}')
+                if is_consistent(variable,value,assignments,constraints): # check if the value is consistent with the current assignments
+                    assignments[variable]=value # add var=value to the assignment by upadting the variables assignment
+                    inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains, assignments, constraints)
+                    print(f'Board after inference on {variable}:')
+                    viewBoard(variables,assignments)
+                    # Inferences are newly trimmed domains and assignments realtive (difference of) to the given assignments (initial)
+                    if inferences!=False: # if inferences did not fail (NOTE: No need to add inferences to assignment as they are already in assignments_copy)
+                            print('\tRecursively called backtrack')
+                            domains_copy, assignments_copy, constraints_copy = backtrack(variables,domains_copy,assignments_copy,constraints_copy) # call backtracking again with the updated (copies) of domains, assignments, and constraints 
+                            if domains_copy!=False:
+                                return domains_copy, assignments_copy, constraints_copy # The assignments and othe fields returned by the last infer (ac-3) call
+                    print(f'\t\tInference on {variable} failed')
+                else: print(f'\t\t{variable} with {value} deemed as inconsistent')
+                assignments[variable] = original_value # Remove the variable from the assignments (by reseting the assignment to hold the original value for the variabel <- will it be anything other than 0?). The inferences need not be removed since they are not present in assignments and only present in assignments_copy (same for all the domains)
+            return False, False, False
+        backtracked_domains, backtracked_assignments,backtracked_constraints = backtrack(variables, domains, assignments, constraints)
+
+        print()
+        if backtracked_domains!=False:
+            print("Board after backtracking:")
+            viewBoard(variables, backtracked_assignments)
+        else: print("Backtracking Failed")
+
 else:
     print("Puzzle state is unsolvable")
