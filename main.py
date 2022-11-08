@@ -122,9 +122,20 @@ def ac3(variables,domains,assignments,constraints):
         if len(domains[variable])==0: return False
     return True
 
-def updateAssignments(variables,assignments,domains):
+def is_consistent(variable,value,assignments,constraints): # Adds the assignment to copy (as value) of the assignments dictionary and checks if all the constraints hold true, if not, returns false, else returns true
+        # set the variables value in assignments (copy as value) to be the given value
+        assignments_copy:dict = asvalue(assignments) # All changes as made on this (as its a copy by value), not the original assignments dictionary
+        assignments_copy[variable]=value
+        # check if it is consistent with the cosntraints with the help of the evalute constraint function
+        for constraint in constraints[variable]:
+            if evaluate_constraint(constraint,assignments_copy)==False: return False
+        return True
+
+def updateAssignments(variables,assignments,domains,constraints):
     for variable in variables:
-        if len(domains[variable])==1: assignments[variable] = domains[variable][0]
+        if len(domains[variable])==1: 
+            if is_consistent(variable,domains[variable][0],assignments,constraints):
+                assignments[variable] = domains[variable][0]
     return
 
 def updateDomain(variables,assignments,domains): # if any variable has a value assigned to it, update its domain to only carry that value
@@ -140,8 +151,8 @@ def updateConstraints(variables,assignments,constraints): # for any assigned val
     return
 
 def updateAll(variables,domains,assignments,constraints):
-    updateAssignments(variables,assignments,domains)
     updateDomain(variables,assignments,domains)
+    updateAssignments(variables,assignments,domains, constraints)
     updateConstraints(variables,assignments,constraints)
     return
 
@@ -173,16 +184,9 @@ if ac3(variables,domains,assignments,constraints):
                     mrv_variable = variable # set the variable as the MRV variable
             return mrv_variable
 
-        def is_consistent(variable,value,assignments,constraints): # Adds the assignment to copy (as value) of the assignments dictionary and checks if all the constraints hold true, if not, returns false, else returns true
-            # set the variables value in assignments (copy as value) to be the given value
-            assignments_copy:dict = asvalue(assignments) # All changes as made on this (as its a copy by value), not the original assignments dictionary
-            assignments_copy[variable]=value
-            # check if it is consistent with the cosntraints with the help of the evalute constraint function
-            for constraint in constraints[variable]:
-                if evaluate_constraint(constraint,assignments_copy)==False: return False
-            return True
 
-        # NOTE: Verified that infer does not change the parameters states
+
+        # NOTE: Verified that infer does not change the parameters states but there
         def infer(variables,domains,assignments,constraints): # Returns inferences as a dict and the updated (copy as value) domains, assignments, and constraints
             # create a copy as value of everything
             variables_copy = asvalue(variables)
@@ -191,26 +195,87 @@ if ac3(variables,domains,assignments,constraints):
             constraints_copy = asvalue(constraints)
 
             # update all the copies based on fully assigned variables (assignments[variable]!=0)
+            print('\tA2 Domain:',domains['A2'])
+            print('\tA2 Assignment:',assignments['A2'])
+            print('\tC1 Domain:',domains['C1'])
+            print('\tC1 Assignment:',assignments['C1'])
+            print('\tC2 Domain:',domains['C2'])
+            print('\tC2 Assignment:',assignments['C2'])
             updateAll(variables_copy,domains_copy,assignments_copy,constraints)
+            print('\tAfter update all:')
+            print('\t\tA2 Domain:',domains_copy['A2'])
+            print('\t\tA2 Assignment:',assignments_copy['A2'])
+            print('\t\tC1 Domain:',domains_copy['C1'])
+            print('\t\tC1 Assignment:',assignments_copy['C1'])
+            print('\t\tC2 Domain:',domains_copy['C2'])
+            print('\t\tC2 Assignment:',assignments_copy['C2'])
+
 
             # call ac3
             if ac3(variables_copy,domains_copy,assignments_copy,constraints_copy):
+                print('\t\tAfter AC-3 (before update all):')
+                print('\t\t\tA2 Domain:',domains_copy['A2'])
+                print('\t\t\tA2 Assignment:',assignments_copy['A2'])
+                print('\t\t\tC1 Domain:',domains_copy['C1'])
+                print('\t\t\tC1 Assignment:',assignments_copy['C1'])
+                print('\t\t\tC2 Domain:',domains_copy['C2'])
+                print('\t\t\tC2 Assignment:',assignments_copy['C2'])
+
                 updateAll(variables_copy,domains_copy,assignments_copy,constraints)  # update all the copies based on fully assigned variables (assignments[variable]!=0)
                 # Get the difference between assignments and assignments copy to create a dictionary of inferences
                 inferences = {}
                 for variable in variables: # the length and contents of variables_copy always matches variables
                     if assignments[variable]!=assignments_copy[variable]: inferences[variable]=assignments_copy[variable]
+                
+                print('\t\t\tAfter AC-3 and update all:')
+                print('\t\t\t\tA2 Domain:',domains_copy['A2'])
+                print('\t\t\t\tA2 Assignment:',assignments_copy['A2'])
+                print('\t\t\t\tC1 Domain:',domains_copy['C1'])
+                print('\t\t\t\tC1 Assignment:',assignments_copy['C1'])
+                print('\t\t\t\tC2 Domain:',domains_copy['C2'])
+                print('\t\t\t\tC2 Assignment:',assignments_copy['C2'])
+
                 return inferences, domains_copy, constraints_copy, assignments_copy #return the inferences dictionary, new domain, constraints, and assignments
             return False,False,False,False, # if AC-3 fails, return false
 
-        print("View all variables:")
-        print(domains)
-        print(assignments)
-        print('\n\n')
-
+        
         original_value = asvalue(assignments['A1'])
         assignments['A1']=4
+        print("Set A1 value as 4")
+        print("Called inferences with original variables, domains, assignments, and constraints")
         inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains, assignments, constraints)
+        print("Board after inferences")
+        viewBoard(variables,assignments_copy)
+        
+        original_value = asvalue(assignments_copy['A6'])
+        assignments_copy['A6']=1
+        print("Set A6 value as 1")
+        print("Called inferences with original variables, domains, assignments, and constraints")
+        inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains_copy, assignments_copy, constraints_copy)
+        print("Board after inferences")
+        viewBoard(variables,assignments_copy)
+
+        original_value = asvalue(assignments_copy['A2'])
+        print(domains_copy["A2"])
+        assignments_copy['A2']=5
+        print("Set A2 value as 5")
+        print("Called inferences with original variables, domains, assignments, and constraints")
+        inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains_copy, assignments_copy, constraints_copy)
+        print("Board after inferences")
+        viewBoard(variables,assignments_copy)
+
+
+
+        """
+        print("Domains before and after inferences:")
+        print(domains)
+        print()
+        print(domains_copy)
+        print("Assignments before and after inferences:")
+        print(assignments)
+        print()
+        print(assignments_copy)
+
         
         assignments_copy['B3']=4 #NOTE: Not visible in assignments
         print(domains_copy)
@@ -220,9 +285,9 @@ if ac3(variables,domains,assignments,constraints):
         inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains_copy, assignments_copy,constraints_copy)
         print(domains_copy)
         print(assignments_copy)
-
+        """
         exit()
-
+        
         # For backtracking, rather than taking instances of ds's, we just take the dictionaries (modified, not consistent with slides psuedocode)
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
             print("Board at the start of Backtrack Call:")
