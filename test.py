@@ -1,5 +1,4 @@
 from constants import *
-# columns are mapped as j-1
 
 board = [
     [4,8,3, 9,2,1, 6,5,7],
@@ -15,37 +14,42 @@ board = [
     [6,9,5, 4,1,7, 0,8,2],
 ]
 
-domains = {}
-assignments = {}
-constraints = {}
 
-INITIAL_STANDARD_DOMAIN = [1,2,3,4,5,6,7,8,9]
-for i in range(0,len(board),1):
-    for j in range(0,len(board[i]),1):
-        name = f'{ROW_INDEX_AS_KEY[i]}{j+1}' # j+1 because we are mapping 0 index as 1
-        domain = INITIAL_STANDARD_DOMAIN if board[i][j]==0 else [board[i][j]]
-        value = board[i][j]
+def loadSudoku(board):
+    variables = []
+    indexes = {}
+    domains = {}
+    assignments = {}
+    constraints = {}
 
-        constraints_l = []
-        # Load the constraints up as well
-        for row in range(len(board)):
-            for col in range(len(board[row])):
-                if row == i and col!=j:
-                    constraints_l.append(f'{name}!={ROW_INDEX_AS_KEY[row]}{col+1}')
-                if col == j and row != i:
-                    constraints_l.append(f'{name}!={ROW_INDEX_AS_KEY[row]}{col+1}')
+    with open('map_constraints.txt','r') as file: BOXCONSTRAINTS=[line.replace('\n','') for line in file.readlines()] # Load box constraints from map_constraints file
+    for i in range(0,len(board),1):
+        for j in range(0,len(board[i]),1):
+            name = f'{ROW_INDEX_AS_KEY[i]}{j+1}' # j+1 because we are mapping 0 index as 1
+            domain = INITIAL_STANDARD_DOMAIN if board[i][j]==0 else [board[i][j]]
+            value = board[i][j]
+            constraints_list = []
+            
+            # Generate the alldiff constraints for this variable
+            for row in range(len(board)):
+                for col in range(len(board[row])):
+                    if row == i and col!=j:
+                        constraints_list.append(f'{name}!={ROW_INDEX_AS_KEY[row]}{col+1}')
+                    if col == j and row != i:
+                        constraints_list.append(f'{name}!={ROW_INDEX_AS_KEY[row]}{col+1}')
+
+            # Retrive the box constraints for this variable (where this variable is the from node)
+            for constraint in BOXCONSTRAINTS: 
+                if name in constraint[:2]: constraints_list.append(constraint)
+
+            variables.append(name)
+            indexes[name]=[i,j]
+            domains[name]=domain
+            assignments[name]=value # only assign if zero is there, else dont add a key value pair
+            constraints[name]=constraints_list
+
+    return variables, indexes, domains, assignments, constraints
 
 
-        domains[name]=domain
-        assignments[name]=value # only assign if zero is there, else dont add a key value pair
-        constraints[name]=constraints_l
+variables, indexes, domains, assignments, constraints = loadSudoku(board)
 
-print(domains)
-print(assignments)
-
-# to create variable name and map
-# i number = letter
-# j is preserved 
-
-
-# convert old constraints using maping functions and load all constraints onto a file
