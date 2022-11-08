@@ -1,182 +1,121 @@
 from constants import *
-from classes import Graph, Variable, CSP
-from utilities import sudokuGraphify
-from functions import ac3
-import numpy as np # Only used to view the sudoku board
-import copy
+from copy import deepcopy as asvalue
+# MODEL 2
 
-#NOTE: ADD PREMATURE INPUT CHECKS
+solveableBoard = [
+    [4,8,3, 9,2,1, 6,5,7],
+    [9,6,0, 3,4,5, 8,0,1],
+    [2,5,1, 8,7,6, 4,9,3],
 
-if __name__=='__main__':
-    # 0's are blank cells (no-assignments)
-    solveableBoard = [
-        [4,8,3, 9,2,1, 6,5,7],
-        [9,6,0, 3,4,5, 8,0,1],
-        [2,5,1, 8,7,6, 4,9,3],
+    [5,4,8, 1,3,2, 9,7,6],
+    [7,2,9, 5,0,0, 1,3,8],
+    [1,0,6, 7,9,8, 2,0,5],
 
-        [5,4,8, 1,3,2, 9,7,6],
-        [7,2,9, 5,0,0, 1,3,8],
-        [1,0,6, 7,9,8, 2,0,5],
+    [3,7,2, 6,8,9, 5,1,4],
+    [0,1,0, 2,5,3, 7,6,9],
+    [6,9,5, 4,1,7, 0,8,2],
+]
 
-        [3,7,2, 6,8,9, 5,1,4],
-        [0,1,0, 2,5,3, 7,6,9],
-        [6,9,5, 4,1,7, 0,8,2],
+def gen_box_constraints():
+    board = [
+    [4,8,3, 9,2,1, 6,5,7],
+    [9,6,0, 3,4,5, 8,0,1],
+    [2,5,1, 8,7,6, 4,9,3],
+
+    [5,4,8, 1,3,2, 9,7,6],
+    [7,2,9, 5,0,0, 1,3,8],
+    [1,0,6, 7,9,8, 2,0,5],
+
+    [3,7,2, 6,8,9, 5,1,4],
+    [0,1,0, 2,5,3, 7,6,9],
+    [6,9,5, 4,1,7, 0,8,2],
     ]
-    unsolvableBoard = [
-        [0,0,3, 0,2,0, 6,0,0],
-        [9,0,0, 3,0,5, 0,0,1],
-        [0,0,1, 8,0,6, 4,0,0],
+    def gen_box_constraints_helper(x, y, w, z):
+        with open("map_constraints2.txt","a+") as f:
+            for i in range(x, y):
+                for j in range(w, z):
+                    for k in range(x,y):
+                        for l in range(w, z):
+                            if (k,l) != (i, j):
+                                f.write(f'{ROW_INDEX_AS_KEY[i]}{j+1}!={ROW_INDEX_AS_KEY[k]}{l+1}\n')
 
-        [0,0,8, 1,0,2, 9,0,0],
-        [7,0,0, 0,0,0, 0,0,8],
-        [0,0,6, 7,0,8, 2,0,0],
+    gen_box_constraints_helper(0,3, 0,3)
+    gen_box_constraints_helper(0,3, 3,6)
+    gen_box_constraints_helper(0,3, 6,9)
+    gen_box_constraints_helper(3,6, 0,3)
+    gen_box_constraints_helper(3,6, 3,6)
+    gen_box_constraints_helper(3,6, 6,9)
+    gen_box_constraints_helper(6,9, 0,3)
+    gen_box_constraints_helper(6,9, 3,6)
+    gen_box_constraints_helper(6,9, 6,9)
 
-        [0,0,2, 6,0,9, 5,0,0],
-        [8,0,0, 2,0,3, 0,0,9],
-        [0,0,5, 0,1,0, 3,0,0],
-    ]
-    
-    board = unsolvableBoard
+def loadSudoku(board):
+    variables = []
+    indexes = {}
+    domains = {}
+    assignments = {}
+    constraints = {}
 
-    # Set up CSP
-    graph: Graph = sudokuGraphify(board) # Convert the board into a graph
-    csp = CSP(graph) # Initialize an instance of CSP with the graph
-    for node in graph.nodes: csp.variables.append(node) # Append graph's nodes to the CSP instances variables list
-    csp.domain = SUDOKUDOMAIN # set the global domain list as the CSP instances domain
-    
-    # Call AC-3 with the CSP
-    if ac3(csp,board): 
-        for node in csp.graph.nodes:
-            node:Variable = node
-            if len(node.domain)==1: # If any nodes domain is trimmed to 1
-                # Set this in the board (to update the board for constraint verification)
-                board[node.i][node.j] = node.domain[0] 
-                # Set this as the nodes value (for selecting unassigned MRV's)
-                node.value = node.domain[0]
-    
-        print(np.array(board))
-
-        # Once a board is deemed to be unsolveable with AC-3 alone 
-        # If any domain len>1
-
-        # Run a backtracking search algorithm with AC-3 as the inference
-
-        def selected_unassigned_variable(csp:CSP): # returns a list of MRV based nodes using insort (NOTE: insort not implemented yet, it iterates and finds MRV each time currently)
-            # Choose a variable without assignment (node.value==0)
-            # if the node.value == 0 (i.e., len(node.domain)>1)
-            # choose the node with the smallest domain (miniming remaining values)
-            graph: Graph = csp.graph
-            minimum = 9 # extrema max (no node/cell can have more than 8 values)
-            mrv_node = None # holder for the node with minimum remaning values
-            for node in graph.nodes:
-                node:Variable = node
-                if node.value==0:
-                    node_domain_length = len(node.domain)
-                    if node_domain_length<minimum:
-                        minimum = node_domain_length
-                        mrv_node = node
-            return mrv_node
-
-        def is_complete(assignment:dict, csp:CSP):
-            # Check if every node in the CSP!=0 (depending on how we handle rest of backtracking)
-            # Check if every node in the CSP!=0 or has an assignment in the dictionary by key
-            for node in csp.graph.nodes:
-                if (node.value==0) and (node.name not in assignment.values()): return False
-            return True
-
-        def is_consistent(assignment,variable, value, csp, given_board):
-            # original copy of board, the changes are done on this to preserve reference related issues
-            board = copy.deepcopy(given_board)
-
-            # find one of the edges where this variable is a from node
-            # get a copy of the constraints
-            constraints = None
-            for edge in csp.graph.edges:
-                if edge[0].name == variable.name:
-                    constraints = edge[2]
-                    break
-
-            # set this value as the variables value in the board
-            board[variable.i][variable.j]=value
-
-            modified_nodes = []
-            modified_values = []
-            # set all the variable value pairs in the assignment list as cell values
-            if len(assignment)>0:
-                for var in assignment: 
-                    for node in csp.graph.nodes:
-                        if node.name==var:
-                            modified_nodes.append(node) # NOTE: Loop at the end, and set value back to zero (assuming zero is the original)
-                            modified_values.append(node.value)
-                            node.value=assignment[var] # NOTE: Need to reset at the end
-                            board[node.i][node.j]=node.value 
-            # check if the variable is still consistent (relative to the board)
-            consistent = True
-            for constraint in constraints: consistent=False if eval(constraint)==False else consistent
-
-            # Reset the assignment variables back to their original value
-            for i in range(0,len(modified_nodes),1): modified_nodes[i].value=modified_values[i]
-
-            # reset the board to its original state NOTE: Not required as all changes are made on the deepcopy of the board
-            return consistent
-
-        def backtrack(assignment,csp, board):
-            print(assignment)
-            if is_complete(assignment,csp): return assignment
-            variable:Variable = selected_unassigned_variable(csp) # uses the MRV heuristic
+    with open('map_constraints.txt','r') as file: BOXCONSTRAINTS=[line.replace('\n','') for line in file.readlines()] # Load box constraints from map_constraints file
+    for i in range(0,len(board),1):
+        for j in range(0,len(board[i]),1):
+            name = f'{ROW_INDEX_AS_KEY[i]}{j+1}' # j+1 because we are mapping 0 index as 1
+            domain = asvalue(INITIAL_STANDARD_DOMAIN) if board[i][j]==0 else [board[i][j]]
+            value = board[i][j]
+            constraints_list = []
             
-            for value in variable.domain:
-                # check if value is consistent with assignment
-                if is_consistent(assignment,variable, value, csp, board):
-                    
-                    board_copy = copy.deepcopy(board)
-                    
-                     # keep a copy domains pre trim (inference)
-                    pre_infrences = {}
-                    for node in csp.graph.nodes: pre_infrences[node.name]=copy.deepcopy(node.domain)
+            # Generate the alldiff constraints for this variable
+            for row in range(len(board)):
+                for col in range(len(board[row])):
+                    if row == i and col!=j:
+                        constraints_list.append(f'{name}!={ROW_INDEX_AS_KEY[row]}{col+1}')
+                    if col == j and row != i:
+                        constraints_list.append(f'{name}!={ROW_INDEX_AS_KEY[row]}{col+1}')
 
-                    # Add variable to the assignment
-                    assignment[variable.name]=value # add the variable value pair to the assignments dictionary
-                    variable.value = value # assign the value to the variable
-                    board[variable.i][variable.j]=variable.value # update the board to hold the assignment
-                    # update the constraints for all from_node.name==variable.name nodes:
-                    # if variable.value!=0, append constraint variable.name==variable.value
-                    for edge in csp.graph.edges:
-                        if edge[0].name==variable.name: edge[2].append(f'board[{variable.i}][{variable.j}]=={variable.value}')
-                    
+            # Retrive the box constraints for this variable (where this variable is the from node)
+            for constraint in BOXCONSTRAINTS: 
+                if name in constraint[:2]: constraints_list.append(constraint)
 
-                    # Get infrences
-                    infered = ac3(csp,board)
-                    if infered!=False:
+            variables.append(name)
+            indexes[name]=[i,j]
+            domains[name]=domain
+            assignments[name]=value #if value!=0: assignments[name]=value # NOTE: Append variable:value only if variable has a value assigned to it (meaning !=0 since 0's are blank)
+            constraints[name]=constraints_list
 
-                        # add the inferences to assignment by updating the variables and board to hold the single length domain values
-                        for node in csp.graph.nodes:
-                            if len(node.domain)==1:
-                                node.value = node.domain[0]
-                                board[node.i][node.j]=node.value
-                        
-                        print(np.array(board))
-                        result = backtrack(assignment,csp,board)
+    return variables, indexes, domains, assignments, constraints
 
-                        if isinstance(result,dict):
-                            return result
+def evaluate_constraint(constraint:str,assignments:dict):
+    return assignments[constraint[0:2]]!=assignments[constraint[4:]]
 
-                    # remove var and its value and infrences from assignment 
-                    del assignment[variable.name]
-                    variable.value = 0
-                    board[variable.i][variable.j]=0
-                    
-                    # remove infrences from assignment by reseting the board to the state before we called AC-3 and resetting the domain of the changed variables
-                    board = copy.deepcopy(board_copy)
-                    for node in csp.graph.nodes: node.domain = copy.deepcopy(pre_infrences[node.name])
-            
-            return False
-    
-        def backtracking_search(csp, board):
-            assignment = {}
-            return backtrack(assignment,csp, board)
-        
-        backtracking_search(csp, board)
-        #NOTE: Constraints include constraints not starting from the current node (this is wrong, need to fix the part where the constraints are loaded in)
+# Revise given the variable_name, domain, and assignment
+def revise(variable_name, domains, constraints, assignments):
+    variable_domain = asvalue(domains[variable_name])
+    variable_constraints = constraints[variable_name]
+    original_variable_value = asvalue(assignments[variable_name])
 
+    revised = False
+    for domain_value in variable_domain: # iterate through this variables domain
+        assignments[variable_name]=domain_value # set the current value in iteration as the assignment (value for the variable)
+        for constraint in variable_constraints:
+            if evaluate_constraint(constraint,assignments)==False: # if it is ever false
+                if domain_value in domains[variable_name]: domains[variable_name].remove(domain_value)
+                revised = True
 
+    # Reset the assignment to hold the variables original value
+    assignments[variable_name]=original_variable_value
+    return revised
+
+# Call revise to trim the domain of every variable
+def ac3(variables,domains,assignments,constraints):
+    for variable in variables:
+        revise(variable,domains,constraints,assignments)
+        if len(domains[variable])==0: return False
+    return True
+
+variables, indexes, domains, assignments, constraints = loadSudoku(solveableBoard)
+if ac3(variables,domains,assignments,constraints):
+    # update assignments so that variables that have a len(domain)==1 have a value assigned to them
+    for variable in variables:
+        print(f'{variable}:{domains[variable]}')
+
+# for backtracking, rather than taking instances of ds's, we just take the dictionaries
