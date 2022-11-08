@@ -2,20 +2,6 @@ from constants import *
 from copy import deepcopy as asvalue
 # MODEL 2
 
-solveableBoard = [
-    [4,8,3, 9,2,1, 6,5,7],
-    [9,6,0, 3,4,5, 8,0,1],
-    [2,5,1, 8,7,6, 4,9,3],
-
-    [5,4,8, 1,3,2, 9,7,6],
-    [7,2,9, 5,0,0, 1,3,8],
-    [1,0,6, 7,9,8, 2,0,5],
-
-    [3,7,2, 6,8,9, 5,1,4],
-    [0,1,0, 2,5,3, 7,6,9],
-    [6,9,5, 4,1,7, 0,8,2],
-]
-
 def gen_box_constraints():
     board = [
     [4,8,3, 9,2,1, 6,5,7],
@@ -112,10 +98,35 @@ def ac3(variables,domains,assignments,constraints):
         if len(domains[variable])==0: return False
     return True
 
-variables, indexes, domains, assignments, constraints = loadSudoku(solveableBoard)
+variables, indexes, domains, assignments, constraints = loadSudoku(AC3_SOLVABLE_BOARD)
 if ac3(variables,domains,assignments,constraints):
-    # update assignments so that variables that have a len(domain)==1 have a value assigned to them
+    
+    # Update assignments so that variables that have a len(domain)==1 have a value assigned to them. Also determine if solved
+    solved = True
     for variable in variables:
-        print(f'{variable}:{domains[variable]}')
+        if len(domains[variable])==1: assignments[variable] = domains[variable][0]
+        else: solved=False
 
-# for backtracking, rather than taking instances of ds's, we just take the dictionaries
+    print(f'Solved with AC-3 alone:{solved}')
+    if solved==False:
+        print("Executing backtracking with AC-3 as the inference")
+        # For backtracking, rather than taking instances of ds's, we just take the dictionaries
+        
+        def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
+            # if assignment is complete then return assignment
+            # variable = select unassigned variable with the MRV heuristic
+            # for each value in the domain
+                # check if the value in the domain is consistent with the current assignments:
+                    # add var=value to the assignment
+                    # inferences (boolean) <- AC3 (four variables) requirement: needs the unassigned variables to have an assignment as 0 in the dictionary
+                    # if inferences did not fail
+                        # add infereces to assignment (update assignment to have the domains)
+                            # return assignmnent (result)
+                # remove variable=value and inferences from the assignment 
+            # return failure (dictionary with an empty -1 as status)
+        
+        # def backtrack_search(csp<-the four variables without the indexes)
+            # remove all unassigned values from the assignment dictionary and pass this as the assignment instead
+            # also pass in sorted MRV list into the backtrack algorithm
+else:
+    print("Puzzle state is unsolvable")
