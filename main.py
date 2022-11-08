@@ -182,6 +182,7 @@ if ac3(variables,domains,assignments,constraints):
                 if evaluate_constraint(constraint,assignments_copy)==False: return False
             return True
 
+        # NOTE: Verified that infer does not change the parameters states
         def infer(variables,domains,assignments,constraints): # Returns inferences as a dict and the updated (copy as value) domains, assignments, and constraints
             # create a copy as value of everything
             variables_copy = asvalue(variables)
@@ -202,12 +203,32 @@ if ac3(variables,domains,assignments,constraints):
                 return inferences, domains_copy, constraints_copy, assignments_copy #return the inferences dictionary, new domain, constraints, and assignments
             return False,False,False,False, # if AC-3 fails, return false
 
+        print("View all variables:")
+        print(domains)
+        print(assignments)
+        print('\n\n')
+
+        original_value = asvalue(assignments['A1'])
+        assignments['A1']=4
+        inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains, assignments, constraints)
+        
+        assignments_copy['B3']=4 #NOTE: Not visible in assignments
+        print(domains_copy)
+        print(assignments_copy)
+        print()
+        
+        inferences, domains_copy, constraints_copy, assignments_copy = infer(variables, domains_copy, assignments_copy,constraints_copy)
+        print(domains_copy)
+        print(assignments_copy)
+
+        exit()
+
         # For backtracking, rather than taking instances of ds's, we just take the dictionaries (modified, not consistent with slides psuedocode)
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
             print("Board at the start of Backtrack Call:")
             viewBoard(variables, assignments)
 
-            # Success base case
+            # Success base case: Returns the given assignments
             if is_complete(assignments):
                 print(assignments) 
                 print('\t\tAssignments deteremined to be complete')
@@ -235,6 +256,7 @@ if ac3(variables,domains,assignments,constraints):
                 else: print(f'\t\t{variable} with {value} deemed as inconsistent')
                 assignments[variable] = original_value # Remove the variable from the assignments (by reseting the assignment to hold the original value for the variabel <- will it be anything other than 0?). The inferences need not be removed since they are not present in assignments and only present in assignments_copy (same for all the domains)
             return False, False, False
+
         backtracked_domains, backtracked_assignments,backtracked_constraints = backtrack(variables, domains, assignments, constraints)
 
         print()
