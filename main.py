@@ -216,16 +216,11 @@ if ac3(variables,domains,assignments,constraints):
             if is_complete(assignments): return domains,assignments,constraints
 
             variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic
-            print(f'Selected Variable: {variable}')
             
             original_value = asvalue(assignments[variable])
-            original_assignments = asvalue(assignments[variable])
-            original_domains = asvalue(domains[variable])
-            original_constraints = asvalue(constraints[variable])
-
+            
             for value in domains[variable]: # for each value in the selected variables domain
-                print(f'\t{variable}\'s Selected Value: {value}')
-                
+
                 if is_consistent(variable,value,assignments,constraints): # check if the value is consistent with the current assignments
 
                     assignments[variable]=value # add var=value to the assignment by upadting the variables assignment
@@ -236,10 +231,6 @@ if ac3(variables,domains,assignments,constraints):
                             domains_copy, assignments_copy, constraints_copy = backtrack(variables,domains_copy,assignments_copy,constraints_copy) # call backtracking again with the updated (copies) of domains, assignments, and constraints 
                             if domains_copy!=False:
                                 return domains_copy, assignments_copy, constraints_copy # The assignments and othe fields returned by the last infer (ac-3) call
-                            
-                            else: print(f'\t\tBacktrack on {variable} failed')
-                    else: print(f'\t\tInference on {variable} failed')
-                else: print(f'\t\t{variable} with {value} deemed as inconsistent')
 
                 assignments[variable] = original_value # Remove the variable from the assignments (by reseting the assignment to hold the original value for the variabel <- will it be anything other than 0?). The inferences need not be removed since they are not present in assignments and only present in assignments_copy (same for all the domains)
                 
@@ -251,7 +242,7 @@ if ac3(variables,domains,assignments,constraints):
         if backtracked_domains!=False:
             print("Board after backtracking:")
             viewBoard(variables, backtracked_assignments)
-        else: print("Backtracking Failed")
+        else: print("Backtracking Failed. Puzzle is not solvable using backtracking")
 
 else:
     print("Puzzle state is unsolvable")
