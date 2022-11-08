@@ -98,7 +98,7 @@ def ac3(variables,domains,assignments,constraints):
         if len(domains[variable])==0: return False
     return True
 
-variables, indexes, domains, assignments, constraints = loadSudoku(AC3_SOLVABLE_BOARD)
+variables, indexes, domains, assignments, constraints = loadSudoku(AC3_UNSOLVABLE_BOARD)
 if ac3(variables,domains,assignments,constraints):
     
     # Update assignments so that variables that have a len(domain)==1 have a value assigned to them. Also determine if solved
@@ -108,12 +108,32 @@ if ac3(variables,domains,assignments,constraints):
         else: solved=False
 
     print(f'Solved with AC-3 alone:{solved}')
+    
+
     if solved==False:
         print("Executing backtracking with AC-3 as the inference")
-        # For backtracking, rather than taking instances of ds's, we just take the dictionaries
+
+        # Utility functions for backtracking
+        def is_complete(assignments): # Check if every variable has an assignment (the dictionary has a default value of 0 for each assignment)
+            for assignment in assignments: 
+                if assignments[assignment]==0: return False
+            return True
+
+        def select_unassigned_variable(variables, domains): # For selecting an unassigned variable using the MRV heuristic
+            minimum = 9 # Domains can have a max of 8 values
+            mrv_variable = None # Initialize mrv_variable as None
+            for variable in variables: # Loop through the list of variables
+                if len(domains[variable])!=1 and len(domains[variable])<minimum: # if the vairable has a domain greater than 1 and smaller than the minimum
+                    minimum = len(domains[variable]) # set the length of the variables domain as the minimum (length of the smallest domain <- updated every iteration)
+                    mrv_variable = variable # set the variable as the MRV variable
+            return mrv_variable
+
         
+
+        # For backtracking, rather than taking instances of ds's, we just take the dictionaries
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
-            # if assignment is complete then return assignment
+            if is_complete(assignments): return assignments
+            variable = select_unassigned_variable()
             # variable = select unassigned variable with the MRV heuristic
             # for each value in the domain
                 # check if the value in the domain is consistent with the current assignments:
