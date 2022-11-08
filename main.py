@@ -128,15 +128,23 @@ if ac3(variables,domains,assignments,constraints):
                     mrv_variable = variable # set the variable as the MRV variable
             return mrv_variable
 
-        
+        def is_consistent(variable,value,assignments,constraints): # Adds the assignment to copy (as value) of the assignments dictionary and checks if all the constraints hold true, if not, returns false, else returns true
+            # set the variables value in assignments (copy as value) to be the given value
+            assignments_copy:dict = asvalue(assignments) # All changes as made on this (as its a copy by value), not the original assignments dictionary
+            assignments_copy[variable]=value
+            # check if it is consistent with the cosntraints with the help of the evalute constraint function
+            for constraint in constraints[variable]:
+                if evaluate_constraint(constraint,assignments_copy)==False: return False
+            return True
+
 
         # For backtracking, rather than taking instances of ds's, we just take the dictionaries
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
             if is_complete(assignments): return assignments
-            variable = select_unassigned_variable()
-            # variable = select unassigned variable with the MRV heuristic
-            # for each value in the domain
-                # check if the value in the domain is consistent with the current assignments:
+            variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic
+            for value in domains[variable]: # for each value in the selected variables domain
+                # check if the value is consistent with the current assignments
+                if is_consistent(variable,value,assignments,constraints): pass
                     # add var=value to the assignment
                     # inferences (boolean) <- AC3 (four variables) requirement: needs the unassigned variables to have an assignment as 0 in the dictionary
                     # if inferences did not fail
