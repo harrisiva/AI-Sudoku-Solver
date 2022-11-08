@@ -137,6 +137,9 @@ if ac3(variables,domains,assignments,constraints):
                 if evaluate_constraint(constraint,assignments_copy)==False: return False
             return True
 
+        
+        for variable in variables:
+            print(f'{variable}:{domains[variable]}')
 
         # For backtracking, rather than taking instances of ds's, we just take the dictionaries
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
@@ -144,15 +147,21 @@ if ac3(variables,domains,assignments,constraints):
             variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic
             for value in domains[variable]: # for each value in the selected variables domain
                 # check if the value is consistent with the current assignments
-                if is_consistent(variable,value,assignments,constraints): pass
-                    # add var=value to the assignment
+                if is_consistent(variable,value,assignments,constraints):
+                    assignments[variable]=value # add var=value to the assignment
+                    # pre_inference = domains
+                    infered = ac3(variables,domains,assignments,constraints)
                     # inferences (boolean) <- AC3 (four variables) requirement: needs the unassigned variables to have an assignment as 0 in the dictionary
                     # if inferences did not fail
                         # add infereces to assignment (update assignment to have the domains)
+                            # go through the domains that are trimmed to 1
+                            # if they are not in the assignment
+                            # update them (keep a list?)
                             # return assignmnent (result)
-                # remove variable=value and inferences from the assignment 
+                # remove variable=value (reset to original value) and inferences (reset domains and set the non single length domains as 0 to represent unassigned status) from the assignment 
             # return failure (dictionary with an empty -1 as status)
         
+
         # def backtrack_search(csp<-the four variables without the indexes)
             # remove all unassigned values from the assignment dictionary and pass this as the assignment instead
             # also pass in sorted MRV list into the backtrack algorithm
