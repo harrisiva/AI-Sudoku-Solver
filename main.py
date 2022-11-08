@@ -46,9 +46,12 @@ def loadSudoku(board):
     for i in range(0,len(board),1):
         for j in range(0,len(board[i]),1):
             name = f'{ROW_INDEX_AS_KEY[i]}{j+1}' # j+1 because we are mapping 0 index as 1
-            domain = asvalue(INITIAL_STANDARD_DOMAIN) if board[i][j]==0 else [board[i][j]]
             value = board[i][j]
+            domain = asvalue(INITIAL_STANDARD_DOMAIN) if value==0 else [value]
             constraints_list = []
+
+            # Update constraints list to the contain the value==assigned_value constraint
+            if value!=0: constraints_list.append(f'{name}=={value}')
             
             # Generate the alldiff constraints for this variable
             for row in range(len(board)):
@@ -71,9 +74,13 @@ def loadSudoku(board):
     return variables, indexes, domains, assignments, constraints
 
 def evaluate_constraint(constraint:str,assignments:dict):
+    x_key:str = constraint[0:2]
+    y_key:str = constraint[4:]
+    if y_key.isnumeric():
+        return assignments[constraint[0:2]]==int(y_key)
     return assignments[constraint[0:2]]!=assignments[constraint[4:]]
 
-# Revise given the variable_name, domain, and assignment
+# Revise given the variable_name, domain, and assignment (Modified Revise)
 def revise(variable_name, domains, constraints, assignments):
     variable_domain = asvalue(domains[variable_name])
     variable_constraints = constraints[variable_name]
@@ -91,28 +98,45 @@ def revise(variable_name, domains, constraints, assignments):
     assignments[variable_name]=original_variable_value
     return revised
 
-# Call revise to trim the domain of every variable
+# Call revise to trim the domain of every variable (Modified AC-3)
 def ac3(variables,domains,assignments,constraints):
     for variable in variables:
         revise(variable,domains,constraints,assignments)
         if len(domains[variable])==0: return False
     return True
 
+def updateAssignments(variables,assignments,domains):
+    for variable in variables:
+        if len(domains[variable])==1: assignments[variable] = domains[variable][0]
+    return
+
+def updateDomain(variables,assignments,domains): # if any variable has a value assigned to it, update its domain to only carry that value
+    for variable in variables:
+        if assignments[variables]!=0:
+            domains[variable]=[assignments[variable]]
+    return
+
+def updateConstraints(variables,assignments,constraints): # for any assigned value, set a new constraint where the variable[value]==value
+    for variable in variables:
+        if assignments[variable]!=0:
+            if f'{variable}=={assignments[variable]}' not in constraints[variable]: constraints[variable].append(f'{variable}=={assignments[variable]}')
+    return
+
 variables, indexes, domains, assignments, constraints = loadSudoku(AC3_UNSOLVABLE_BOARD)
 if ac3(variables,domains,assignments,constraints):
     
-    # Update assignments so that variables that have a len(domain)==1 have a value assigned to them. Also determine if solved
-    solved = True
-    for variable in variables:
-        if len(domains[variable])==1: assignments[variable] = domains[variable][0]
-        else: solved=False
+    # Update assignments so that variables that have a len(domain)==1 have a value assigned to them.
 
-    print(f'Solved with AC-3 alone:{solved}')
-    
+
+    # Check (based) on assignments if the puzzle is solved
+    solved = True
+    for variable in variables: solved = False if assignments[variable]!=0 else solved
+
+    print(f'Solved with AC-3 alone: {solved}')
 
     if solved==False:
         print("Executing backtracking with AC-3 as the inference")
-
+        
         # Utility functions for backtracking
         def is_complete(assignments): # Check if every variable has an assignment (the dictionary has a default value of 0 for each assignment)
             for assignment in assignments: 
@@ -137,9 +161,29 @@ if ac3(variables,domains,assignments,constraints):
                 if evaluate_constraint(constraint,assignments_copy)==False: return False
             return True
 
-        
+        updateAssignments(variables,assignments,domains)
+        updateConstraints(variables,assignments,constraints)
         for variable in variables:
-            print(f'{variable}:{domains[variable]}')
+            print(f'{variable}:{domains[variable]}\n\t{constraints[variable]}')
+
+        def infer(variables,domains,assignments,constraints):
+            # create a copy as value of everything
+            variables_copy = asvalue(variables)
+            domains_copy = asvalue(domains)
+            assignments_copy = asvalue(assignments)
+            constraints_copy = asvalue(constraints)
+
+            # call ac3
+            if ac3(variables_copy,domains_copy,assignments_copy,constraints_copy):
+                for variable in variables_copy:
+                    print(domains_copy[variable])
+                # update the assignments_copy,constraints_copy and the domain_copy
+                # get a difference between the assignments and assignments copy
+                # add the differences as a inferences dictionary
+                return #the inferences dictionary
+            
+            # see the domains that are trimmed
+            return False
 
         # For backtracking, rather than taking instances of ds's, we just take the dictionaries
         def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
@@ -148,9 +192,12 @@ if ac3(variables,domains,assignments,constraints):
             for value in domains[variable]: # for each value in the selected variables domain
                 # check if the value is consistent with the current assignments
                 if is_consistent(variable,value,assignments,constraints):
-                    assignments[variable]=value # add var=value to the assignment
+                    assignments[variable]=value # add var=value to the assignment by upadting the variables assignment
+                    
                     # pre_inference = domains
-                    infered = ac3(variables,domains,assignments,constraints)
+                    inferences = infer(variables, domains, assignments, constraints)
+                    # Inferences are newly trimmed domains and assignments based on this assignment
+
                     # inferences (boolean) <- AC3 (four variables) requirement: needs the unassigned variables to have an assignment as 0 in the dictionary
                     # if inferences did not fail
                         # add infereces to assignment (update assignment to have the domains)
