@@ -1,5 +1,5 @@
 from constants import *
-from copy import deepcopy as value
+from copy import deepcopy as asvalue
 # MODEL 2
 
 solveableBoard = [
@@ -27,7 +27,7 @@ def loadSudoku(board):
     for i in range(0,len(board),1):
         for j in range(0,len(board[i]),1):
             name = f'{ROW_INDEX_AS_KEY[i]}{j+1}' # j+1 because we are mapping 0 index as 1
-            domain = INITIAL_STANDARD_DOMAIN if board[i][j]==0 else [board[i][j]]
+            domain = asvalue(INITIAL_STANDARD_DOMAIN) if board[i][j]==0 else [board[i][j]]
             value = board[i][j]
             constraints_list = []
             
@@ -57,39 +57,41 @@ def evaluate_constraint(constraint:str,assignments:dict):
 
 # revise given the variable_name, domain, and assignment
 def revise(variable_name, domains, constraints, assignments):
-    variable_domain = value(domains[variable_name]) 
+    variable_domain = asvalue(domains[variable_name])
     variable_constraints = constraints[variable_name]
-    original_variable_value = value(assignments[variable_name])
+    original_variable_value = asvalue(assignments[variable_name])
 
     revised = False
     for domain_value in variable_domain: # iterate through this variables domain
         assignments[variable_name]=domain_value # set the current value in iteration as the assignment (value for the variable)
-        for constraint in variable_constraints: # loop through the constraints
-            if evaluate_constraint(constraint, assignments)==False: # evaluate the constraint
-                if domain_value in domains[variable_name]: 
-                    domains[variable_name].remove(domain_value) # remove assignment value from the domain's clone (to not break the loop)
-                    revised = True
+        for constraint in variable_constraints:
+            if evaluate_constraint(constraint,assignments)==False: # if it is ever false
+                if domain_value in domains[variable_name]: domains[variable_name].remove(domain_value)
+                revised = True
 
     # Reset the assignment to hold the variables original value
     assignments[variable_name]=original_variable_value
     return revised
 
+
 # load every variable to the queue 
 def ac3(variables,domains,assignments,constraints):
-    queue = [variable for variable in variables] # load all variables to a queue
-    while len(queue)>=1: # while the queue is not empty 
-        variable = queue.pop() # pop a variable from the queue
-        revise(variable,domains,constraints,assignments) # revise (trim) the variables domain
-        if len(domains[variable])==0: return False # if the variable's domain is trimmed to contain no elements, return False as a solution is not possible
+    for variable in variables:
+        revise(variable,domains,constraints,assignments)
+        if len(domains[variable])==0: return False
     return True
 
 variables, indexes, domains, assignments, constraints = loadSudoku(solveableBoard)
+if ac3(variables,domains,assignments,constraints):
+    # update assignments so that variables that have a len(domain)==1 have a value assigned to them
+    
+"""
 for variable in variables:
     print(variable,domains[variable])
 made_consistent = ac3(variables,domains, assignments, constraints)
 print('Made Consistent',made_consistent)
 for variable in variables:
     print(variable,domains[variable])
-
+"""
 
 # for backtracking, rather than taking instances of ds's, we just take the dictionaries
