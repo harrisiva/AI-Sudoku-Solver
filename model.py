@@ -51,7 +51,6 @@ def loadSudoku(board):
 
     return variables, indexes, domains, assignments, constraints
 
-
 def evaluate_constraint(constraint:str,assignments:dict):
     return assignments[constraint[0:2]]!=assignments[constraint[4:]]
 
@@ -73,8 +72,7 @@ def revise(variable_name, domains, constraints, assignments):
     assignments[variable_name]=original_variable_value
     return revised
 
-
-# load every variable to the queue 
+# Call revise to trim the domain of every variable
 def ac3(variables,domains,assignments,constraints):
     for variable in variables:
         revise(variable,domains,constraints,assignments)
@@ -84,14 +82,7 @@ def ac3(variables,domains,assignments,constraints):
 variables, indexes, domains, assignments, constraints = loadSudoku(solveableBoard)
 if ac3(variables,domains,assignments,constraints):
     # update assignments so that variables that have a len(domain)==1 have a value assigned to them
-    
-"""
-for variable in variables:
-    print(variable,domains[variable])
-made_consistent = ac3(variables,domains, assignments, constraints)
-print('Made Consistent',made_consistent)
-for variable in variables:
-    print(variable,domains[variable])
-"""
+    for variable in variables:
+        print(f'{variable}:{domains[variable]}')
 
 # for backtracking, rather than taking instances of ds's, we just take the dictionaries
