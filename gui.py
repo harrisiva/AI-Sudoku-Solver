@@ -30,7 +30,7 @@ grid =[
 	]
 
 # Load test fonts for future use
-font1 = pygame.font.SysFont("Times New Roman", 45, "bold")
+font1 = pygame.font.SysFont("Times New Roman", 30, "bold")
 font2 = pygame.font.SysFont("Times New Roman", 20, "bold")
 def get_cord(pos):
 	global x
@@ -41,8 +41,8 @@ def get_cord(pos):
 # Highlight the cell selected
 def draw_box():
 	for i in range(2):
-		pygame.draw.line(screen, (255, 0, 0), (x * dif-3, (y + i)*dif), (x * dif + dif + 3, (y + i)*dif), 7)
-		pygame.draw.line(screen, (255, 0, 0), ( (x + i)* dif, y * dif ), ((x + i) * dif, y * dif + dif), 7)
+		pygame.draw.line(screen, (0, 255, 0), (x * dif-3, (y + i)*dif), (x * dif + dif + 3, (y + i)*dif), 7)
+		pygame.draw.line(screen, (0, 255, 0), ( (x + i)* dif, y * dif ), ((x + i) * dif, y * dif + dif), 7)
 
 # Function to draw required lines for making Sudoku grid		
 def draw():
@@ -57,7 +57,7 @@ def draw():
 
 				# Fill grid with default numbers specified
 				text1 = font1.render(str(grid[i][j]), 1, (0, 0, 0))
-				screen.blit(text1, (i * dif + 15, j * dif + 15))
+				screen.blit(text1, (i * dif + 20, j * dif + 11))
 	for i in range(10):
 		if i % 3 == 0 :
 			thick = 4
