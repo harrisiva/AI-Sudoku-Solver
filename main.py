@@ -252,4 +252,3 @@ if __name__=='__main__':
     new_board = solve_sudoku(board)
     print("Solved board")
     print(np.array(new_board))
-

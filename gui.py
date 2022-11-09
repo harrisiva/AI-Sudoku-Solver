@@ -186,11 +186,7 @@ while run:
 			state1 = 0
 		else:
 			grid[int(x)][int(y)]= 0
-
-		
-
 		val = 0
-	
 	
 	draw()
 	if state1 == 1:
