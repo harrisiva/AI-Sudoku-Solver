@@ -17,7 +17,7 @@ def viewBoard(variables, assignments):
     ]
     for variable in variables: tempMat[ROW_LETTER_AS_KEY[variable[0]]][int(variable[1])-1] = assignments[variable]
     print(np.array(tempMat))
-    return
+    return tempMat
 
 def gen_box_constraints():
     board = [
@@ -219,9 +219,9 @@ def backtrack(variables,domains,assignments,constraints): # def backtrack(the fo
     assignments[variable] = original_value # Remove the variable from the assignments (by reseting the assignment to hold the original value for the variabel <- will it be anything other than 0?). The inferences need not be removed since they are not present in assignments and only present in assignments_copy (same for all the domains)
                 
     return False, False, False
-
-if __name__=='__main__':
-    variables, indexes, domains, assignments, constraints = loadSudoku(RANDOM_BOARD)
+def solve_sudoku(board):
+    new_board = []
+    variables, indexes, domains, assignments, constraints = loadSudoku(board)
     if ac3(variables,domains,assignments,constraints):
         updateAll(variables,domains,assignments,constraints) # Updates the given domains, assignments, constraints to match the given variables value assignment (if it is complete)
 
@@ -239,7 +239,26 @@ if __name__=='__main__':
             print()
             if backtracked_domains!=False:
                 print("Board after backtracking:")
-                viewBoard(variables, backtracked_assignments)
+                new_board = viewBoard(variables, backtracked_assignments)
             else: print("Backtracking Failed. Puzzle is not solvable using backtracking")
     else:
         print("Puzzle state is unsolvable")
+    return new_board
+
+if __name__=='__main__':
+    board = [
+        [7,6,0, 0,0,9, 0,1,0],
+        [8,0,0, 0,0,0, 7,2,4],
+        [0,0,0, 0,0,0, 0,0,9],
+        [4,0,6, 0,0,0, 3,0,2],
+        [0,7,0, 4,5,6, 0,0,0],
+        [0,5,1, 0,0,0, 0,7,6],
+        [1,0,0, 2,9,0, 0,4,0],
+        [2,0,7, 6,3,0, 1,0,0],
+        [0,9,8, 0,0,5, 2,0,7],
+    ]
+
+    new_board = solve_sudoku(board)
+    print("new_board")
+    print(new_board)
+

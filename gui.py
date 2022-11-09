@@ -1,4 +1,6 @@
 import pygame
+from main import solve_sudoku
+
 
 # initialise the pygame font
 pygame.font.init()
@@ -176,7 +178,7 @@ while run:
 				rs = 0
 				error = 0
 				flag2 = 0
-				print("SOlve Matrix")
+				grid = solve_sudoku(grid)
 
 	if val != 0:		
 		draw_val(val)
