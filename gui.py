@@ -1,20 +1,7 @@
 import pygame
+from main import solve_sudoku
+sub = 500 / 9
 
-# initialise the pygame font
-pygame.font.init()
-
-# Total window
-screen = pygame.display.set_mode((500, 600))
-
-# Title and Icon
-pygame.display.set_caption("Sudoku Solver with AC3 and Backtracking")
-
-
-x = 0
-y = 0
-dif = 500 / 9
-val = 0
-# Default Sudoku Board.
 grid =[
 		[0, 0, 0, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -26,100 +13,119 @@ grid =[
 		[0, 0, 0, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0]
 	]
+empty_grid =[
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0]
+	]
 
-# Load test fonts for future use
-font1 = pygame.font.SysFont("Times New Roman", 45, "bold")
-font2 = pygame.font.SysFont("Times New Roman", 20, "bold")
+def valid_move(matrix, col, row, val):
+    for i in range(9):
+        if matrix[col][i]== val:
+            return False
+        if matrix[i][row]== val:
+            return False
+    a = col//3
+    b = row//3
+    for x in range(a * 3, a * 3 + 3):
+        for y in range (b * 3, b * 3 + 3):
+            if matrix[x][y]== val:
+                return False
+    return True
+
+pygame.font.init()
+screen = pygame.display.set_mode((500, 800))
+pygame.display.set_caption("Sudoku Solver with AC3 and Backtracking")
+
+val = 0
+
+x = 0
+y = 0
+
+font1 = pygame.font.SysFont("Times New Roman", 30, "bold")
+font2 = pygame.font.SysFont("Times New Roman", 26, "bold")
 def get_cord(pos):
 	global x
-	x = pos[0]//dif
+	x = pos[0]//sub
 	global y
-	y = pos[1]//dif
+	y = pos[1]//sub
 
-# Highlight the cell selected
 def draw_box():
 	for i in range(2):
-		pygame.draw.line(screen, (255, 0, 0), (x * dif-3, (y + i)*dif), (x * dif + dif + 3, (y + i)*dif), 7)
-		pygame.draw.line(screen, (255, 0, 0), ( (x + i)* dif, y * dif ), ((x + i) * dif, y * dif + dif), 7)
+		pygame.draw.line(screen, (150, 0, 0), (x * sub-3, (y + i)*sub), (x * sub + sub + 3, (y + i)*sub), 7)
+		pygame.draw.line(screen, (150, 0, 0), ( (x + i)* sub, y * sub ), ((x + i) * sub, y * sub + sub), 7)
 
-# Function to draw required lines for making Sudoku grid		
 def draw():
-	# Draw the lines
 		
 	for i in range (9):
 		for j in range (9):
 			if grid[i][j]!= 0:
 
-				# Fill blue color in already numbered grid
-				pygame.draw.rect(screen, (255, 255, 0), (i * dif, j * dif, dif + 1, dif + 1))
+				pygame.draw.rect(screen, (255, 255, 0), (i * sub, j * sub, sub + 1, sub + 1))
 
-				# Fill grid with default numbers specified
 				text1 = font1.render(str(grid[i][j]), 1, (0, 0, 0))
-				screen.blit(text1, (i * dif + 15, j * dif + 15))
+				screen.blit(text1, (i * sub + 20, j * sub + 11))
 	for i in range(10):
 		if i % 3 == 0 :
-			thick = 4
+			thick = 5
+			colourbold = 1.20
 		else:
-			thick = 1
-		pygame.draw.line(screen, (0, 0, 0), (0, i * dif), (500, i * dif), thick)
-		pygame.draw.line(screen, (0, 0, 0), (i * dif, 0), (i * dif, 500), thick)	
+			thick = 2
+			colourbold = 0
+		pygame.draw.line(screen, (0, 120 * colourbold, 0), (0, i * sub), (500, i * sub), thick)
+		pygame.draw.line(screen, (0, 120* colourbold, 0), (i * sub, 0), (i * sub, 500), thick)	
 
-# Fill value entered in cell	
 def draw_val(val):
 	text1 = font1.render(str(val), 1, (0, 0, 0))
-	screen.blit(text1, (x * dif + 15, y * dif + 15))
+	screen.blit(text1, (x * sub + 15, y * sub + 15))
 
 
 
 
-# Display instruction for the game
 def instruction():
-	text1 = font2.render("Press D to get a random configuration", 1, (0, 0, 0))
-	text2 = font2.render("Press S to Solve", 1, (0, 0, 0))
-	text3 = font2.render("Press R to clear screen", 1, (0, 0, 0))
+	text1 = font2.render("Press D to get a default configuration", 1, (0, 50, 0))
+	text2 = font2.render("Press S to solve Sudoku", 1, (0, 50, 0))
+	text3 = font2.render("Press A to clear screen", 1, (0, 50, 0))
 
 	
 	screen.blit(text1, (20, 520))	
-	screen.blit(text2, (20, 540))
-	screen.blit(text3, (20, 560))
+	screen.blit(text2, (20, 620))
+	screen.blit(text3, (20, 720))
 
-
-# Display options when solved
 
 run = True
-flag1 = 0
-flag2 = 0
-rs = 0
-error = 0
-# The loop thats keep the window running
+state1 = 0
+state2 = 0
+
 while run:
 	
-	# White color background
 	screen.fill((255, 255, 255))
-	# Loop through the events stored in event.get()
 	for event in pygame.event.get():
-		# Quit the game window
 		if event.type == pygame.QUIT:
 			run = False
-		# Get the mouse position to insert number
 		if event.type == pygame.MOUSEBUTTONDOWN:
-			flag1 = 1
+			state1 = 1
 			pos = pygame.mouse.get_pos()
 			get_cord(pos)
-		# Get the number to be inserted if key pressed
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_LEFT:
 				x-= 1
-				flag1 = 1
+				state1 = 1
 			if event.key == pygame.K_RIGHT:
 				x+= 1
-				flag1 = 1
+				state1 = 1
 			if event.key == pygame.K_UP:
 				y-= 1
-				flag1 = 1
+				state1 = 1
 			if event.key == pygame.K_DOWN:
 				y+= 1
-				flag1 = 1
+				state1 = 1
 			if event.key == pygame.K_1:
 				val = 1
 			if event.key == pygame.K_2:
@@ -139,12 +145,10 @@ while run:
 			if event.key == pygame.K_9:
 				val = 9
 			if event.key == pygame.K_RETURN:
-				flag2 = 1
-			# If R pressed clear the sudoku board
-			if event.key == pygame.K_r:
-				rs = 0
-				error = 0
-				flag2 = 0
+				state2 = 1
+			if event.key == pygame.K_a:
+
+				state2 = 0
 				grid =[
 				[0, 0, 0, 0, 0, 0, 0, 0, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -156,11 +160,8 @@ while run:
 				[0, 0, 0, 0, 0, 0, 0, 0, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 0]
 				]
-			# If D is pressed reset the board to default
 			if event.key == pygame.K_d:
-				rs = 0
-				error = 0
-				flag2 = 0
+				state2 = 0
 				grid =[
 					[7, 8, 0, 4, 0, 0, 1, 2, 0],
 					[6, 0, 0, 0, 7, 5, 0, 0, 9],
@@ -173,31 +174,26 @@ while run:
 					[0, 4, 9, 2, 0, 6, 0, 0, 7]
 				]
 			if event.key == pygame.K_s:
-				rs = 0
-				error = 0
-				flag2 = 0
-				print("SOlve Matrix")
+				if grid != empty_grid:
+	
+					state2 = 0
+					grid = solve_sudoku(grid)
 
 	if val != 0:		
 		draw_val(val)
-		# print(x)
-		# print(y)
-		grid[int(x)][int(y)]= val
-		print(grid)
-		flag1 = 0
-
+		if valid_move(grid, int(x), int(y), val)== True:
+			grid[int(x)][int(y)]= val
+			state1 = 0
+		else:
+			grid[int(x)][int(y)]= 0
 		val = 0
 	
-
-	
 	draw()
-	if flag1 == 1:
+	if state1 == 1:
 		draw_box()	
 	instruction()
 
-	# Update window
 	pygame.display.update()
 
-# Quit pygame window
 pygame.quit()	
 	
