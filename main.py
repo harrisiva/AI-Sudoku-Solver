@@ -3,7 +3,7 @@ from copy import deepcopy as asvalue
 import numpy as np
 # MODEL 2
 
-def viewBoard(variables, assignments):
+def assignToBoard(variables, assignments):
     tempMat = [
         [0,0,0, 0,0,0, 0,0,0],
         [0,0,0, 0,0,0, 0,0,0],
@@ -16,23 +16,13 @@ def viewBoard(variables, assignments):
         [0,0,0, 0,0,0, 0,0,0],
     ]
     for variable in variables: tempMat[ROW_LETTER_AS_KEY[variable[0]]][int(variable[1])-1] = assignments[variable]
-    print(np.array(tempMat))
     return tempMat
 
+def viewBoard(variables, assignments):
+    print(np.array(assignToBoard(variables,assignments)))
+    return 
+
 def gen_box_constraints():
-    board = [
-    [4,8,3, 9,2,1, 6,5,7],
-    [9,6,0, 3,4,5, 8,0,1],
-    [2,5,1, 8,7,6, 4,9,3],
-
-    [5,4,8, 1,3,2, 9,7,6],
-    [7,2,9, 5,0,0, 1,3,8],
-    [1,0,6, 7,9,8, 2,0,5],
-
-    [3,7,2, 6,8,9, 5,1,4],
-    [0,1,0, 2,5,3, 7,6,9],
-    [6,9,5, 4,1,7, 0,8,2],
-    ]
     def gen_box_constraints_helper(x, y, w, z):
         with open("map_constraints2.txt","a+") as f:
             for i in range(x, y):
@@ -91,7 +81,6 @@ def loadSudoku(board):
     return variables, indexes, domains, assignments, constraints
 
 def evaluate_constraint(constraint:str,assignments:dict):
-    x_key:str = constraint[0:2]
     y_key:str = constraint[4:]
     if y_key.isnumeric():
         return assignments[constraint[0:2]]==int(y_key)
@@ -131,7 +120,7 @@ def is_consistent(variable,value,assignments,constraints): # Adds the assignment
             if evaluate_constraint(constraint,assignments_copy)==False: return False
         return True
 
-def updateAssignments(variables,assignments,domains,constraints):
+def updateAssignments(variables,assignments,domains,constraints): # Given the domains and constraints, this function updates assignments so that any variable with a len(domain)==1 will have the only item in the list assigned as its value provided the assignment will be consistent
     for variable in variables:
         if len(domains[variable])==1: 
             if is_consistent(variable,domains[variable][0],assignments,constraints):
@@ -193,18 +182,15 @@ def infer(variables,domains,assignments,constraints): # Returns inferences as a 
         return inferences, domains_copy, constraints_copy, assignments_copy #return the inferences dictionary, new domain, constraints, and assignments
     return False,False,False,False, # if AC-3 fails, return false
 
-# For backtracking, rather than taking instances of ds's, we just take the dictionaries (modified, not consistent with slides psuedocode)
+# For backtracking, rather than taking instances of ds's, we just take the dictionaries (modified, not consistent with slides psuedocode but still the same logic)
 def backtrack(variables,domains,assignments,constraints): # def backtrack(the four variables without the indexes)
 
     # Success base case: Returns the given assignments
     if is_complete(assignments): return domains,assignments,constraints
-
-    variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic
-            
-    original_value = asvalue(assignments[variable])
-            
+    variable = select_unassigned_variable(variables, domains) # select unassigned variable with the MRV heuristic      
+    original_value = asvalue(assignments[variable]) # Store the copy of the variable (asvalue) for reseting at the end of the iteration
+    
     for value in domains[variable]: # for each value in the selected variables domain
-
         if is_consistent(variable,value,assignments,constraints): # check if the value is consistent with the current assignments
 
             assignments[variable]=value # add var=value to the assignment by upadting the variables assignment
@@ -215,34 +201,38 @@ def backtrack(variables,domains,assignments,constraints): # def backtrack(the fo
                 domains_copy, assignments_copy, constraints_copy = backtrack(variables,domains_copy,assignments_copy,constraints_copy) # call backtracking again with the updated (copies) of domains, assignments, and constraints 
                 if domains_copy!=False:
                     return domains_copy, assignments_copy, constraints_copy # The assignments and othe fields returned by the last infer (ac-3) call
-
-    assignments[variable] = original_value # Remove the variable from the assignments (by reseting the assignment to hold the original value for the variabel <- will it be anything other than 0?). The inferences need not be removed since they are not present in assignments and only present in assignments_copy (same for all the domains)
-                
+        assignments[variable] = original_value # Remove the variable from the assignments (by reseting the assignment to hold the original value for the variabel <- will it be anything other than 0?). The inferences need not be removed since they are not present in assignments and only present in assignments_copy (same for all the domains)
+    
     return False, False, False
+
 def solve_sudoku(board):
     new_board = []
+
     variables, indexes, domains, assignments, constraints = loadSudoku(board)
-    if ac3(variables,domains,assignments,constraints):
+    # Calling AC-3: Attempting to solve the given sudoku CSP using the modified AC-3 implementation
+    if ac3(variables,domains,assignments,constraints): # If AC-3 is able to solve the problem
         updateAll(variables,domains,assignments,constraints) # Updates the given domains, assignments, constraints to match the given variables value assignment (if it is complete)
 
         # Check (based) on assignments if the puzzle is solved
         solved = True
         for variable in variables: solved = False if assignments[variable]==0 else solved
+        
+        
+        if solved==False: # If the CSP has a partial assignment (incomplete), meaning it has not been fully solved by AC-3
+            # Execute backtracking search on the board state to fully solve the board
+            backtracked_domains, backtracked_assignments, backtracked_constraints = backtrack(variables, domains, assignments, constraints)
+            
+            if backtracked_domains!=False: # if backtracking did not fail, set the new_board variable to equal to the matrix built using the given variables and backtracked_assignments
+                new_board = assignToBoard(variables, backtracked_assignments)
+            
+            else: # If backtracking fails and the puzzle is not solvable using backtracking 
+                return new_board
+        
+        else: # If the board is entirely solve using AC-3, set the new_board variable to equal to the matrix built using the given assignemtns and variables
+            new_board = assignToBoard(variables, assignments)
 
-        print(f'Solved with AC-3 alone: {solved}')
-        viewBoard(variables,assignments)
-        if solved==False:
-            print("Executing backtracking with AC-3 as the inference function")
-
-            backtracked_domains, backtracked_assignments,backtracked_constraints = backtrack(variables, domains, assignments, constraints)
-
-            print()
-            if backtracked_domains!=False:
-                print("Board after backtracking:")
-                new_board = viewBoard(variables, backtracked_assignments)
-            else: print("Backtracking Failed. Puzzle is not solvable using backtracking")
-    else:
-        print("Puzzle state is unsolvable")
+    else: #  If the puzzle state is not solvable
+        return new_board
     return new_board
 
 if __name__=='__main__':
@@ -257,8 +247,9 @@ if __name__=='__main__':
         [2,0,7, 6,3,0, 1,0,0],
         [0,9,8, 0,0,5, 2,0,7],
     ]
-
+    print("Initial Board")
+    print(np.array(board))
     new_board = solve_sudoku(board)
-    print("new_board")
-    print(new_board)
+    print("Solved board")
+    print(np.array(new_board))
 
