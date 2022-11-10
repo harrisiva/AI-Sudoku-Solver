@@ -1,9 +1,10 @@
 from constants import *
 from copy import deepcopy as asvalue
 import numpy as np
-# MODEL 2
+# Dictionary based implementation
 
 def assignToBoard(variables, assignments):
+    # This function is takes a lsit of variables and a dictionary of assignments and returns a matrix with the values for each variable assigned to the right indexes
     tempMat = [
         [0,0,0, 0,0,0, 0,0,0],
         [0,0,0, 0,0,0, 0,0,0],
@@ -19,10 +20,12 @@ def assignToBoard(variables, assignments):
     return tempMat
 
 def viewBoard(variables, assignments):
+    # When called, this function prints a matrix. This is used for visualizing the current state of the board given the list of variables and the assignments dictionary associated with it.
     print(np.array(assignToBoard(variables,assignments)))
     return 
 
 def gen_box_constraints():
+    # This function generates the box constraints and writes them to a file.
     def gen_box_constraints_helper(x, y, w, z):
         with open("map_constraints2.txt","a+") as f:
             for i in range(x, y):
@@ -42,7 +45,7 @@ def gen_box_constraints():
     gen_box_constraints_helper(6,9, 3,6)
     gen_box_constraints_helper(6,9, 6,9)
 
-def loadSudoku(board):
+def loadSudoku(board): # Called to convert a matrix to four dictionaries that are specific for the CSP
     variables = []
     indexes = {}
     domains = {}
@@ -80,7 +83,7 @@ def loadSudoku(board):
 
     return variables, indexes, domains, assignments, constraints
 
-def evaluate_constraint(constraint:str,assignments:dict):
+def evaluate_constraint(constraint:str,assignments:dict): # Evaluates if the assignments is consistent with the constraints.
     y_key:str = constraint[4:]
     if y_key.isnumeric():
         return assignments[constraint[0:2]]==int(y_key)
@@ -145,7 +148,6 @@ def updateAll(variables,domains,assignments,constraints):
     updateConstraints(variables,assignments,constraints)
     return
 
-# Utility functions for backtracking
 def is_complete(assignments): # Check if every variable has an assignment (the dictionary has a default value of 0 for each assignment)
     for assignment in assignments: 
         if assignments[assignment]==0: return False
